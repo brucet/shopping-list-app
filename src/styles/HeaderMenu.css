@@ -1,0 +1,85 @@
+.header-menu-container {
+  position: relative;
+}
+
+.header-menu-trigger {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+  color: white;
+  cursor: pointer;
+  font-size: 24px;
+  padding: 4px 12px;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.header-menu-trigger:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.header-menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.header-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: background 0.2s ease;
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.header-menu-item:hover {
+  background: #f5f5f5;
+}
+
+.header-menu-item.danger {
+  color: #e74c3c;
+}
+
+.header-menu-item.danger:hover {
+  background: #fee;
+}
+
+.header-menu-icon {
+  font-size: 16px;
+  width: 20px;
+  display: inline-block;
+}
+
+@media (max-width: 768px) {
+  .header-menu-trigger {
+    padding: 4px 10px;
+    font-size: 20px;
+  }
+
+  .header-menu-dropdown {
+    min-width: 180px;
+  }
+
+  .header-menu-item {
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+}

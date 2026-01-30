@@ -1,0 +1,25 @@
+{
+  "name": "shopping-list-app",
+  "version": "1.0.0",
+  "description": "A React shopping list app with categories and drag-and-drop",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.27",
+    "@types/react-beautiful-dnd": "^13.1.8",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^4.3.9"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  }
+}

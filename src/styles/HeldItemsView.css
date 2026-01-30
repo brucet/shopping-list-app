@@ -1,0 +1,157 @@
+.held-items-view {
+  flex: 1;
+  overflow-y: auto;
+  background: #f8f9fa;
+  padding: 16px;
+}
+
+.held-items-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.held-items-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.held-count {
+  background: #667eea;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.empty-held-items {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.empty-held-items p {
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.held-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.held-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  background: white;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.held-item:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.held-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.held-item-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  word-break: break-word;
+}
+
+.held-item-category {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #555;
+  width: fit-content;
+}
+
+.held-item-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.unhold-btn,
+.delete-held-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 6px 8px;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.unhold-btn:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+.delete-held-btn:hover {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+}
+
+@media (max-width: 768px) {
+  .held-items-view {
+    padding: 12px;
+  }
+
+  .held-items-header {
+    padding: 14px;
+  }
+
+  .held-items-header h2 {
+    font-size: 18px;
+  }
+
+  .held-item {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .held-items-view {
+    padding: 8px;
+  }
+
+  .held-items-header {
+    padding: 12px;
+  }
+
+  .held-items-header h2 {
+    font-size: 16px;
+  }
+
+  .held-item-text {
+    font-size: 14px;
+  }
+}
