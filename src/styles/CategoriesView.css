@@ -5,6 +5,13 @@
   padding: 8px;
 }
 
+/* Hide categories view on wide screens (when sidebar is visible) */
+@media (min-width: 769px) {
+  .categories-view {
+    display: none;
+  }
+}
+
 .categories-view-header {
   display: flex;
   justify-content: space-between;

@@ -497,15 +497,22 @@ const App = () => {
         </aside>
 
         <DragDropContext onDragEnd={handleDragEnd}>
+          {/* Categories view - only shown on mobile when sidebar is hidden */}
           {currentView === 'categories' && (
-            <CategoriesView
-              categories={categories}
-              items={items}
-              onCategoryClick={handleCategoryClick}
-              onAddCategory={addCategory}
-              onUpdateCategory={updateCategory}
-              onDeleteCategory={deleteCategory}
-            />
+            <>
+              <CategoriesView
+                categories={categories}
+                items={items}
+                onCategoryClick={handleCategoryClick}
+                onAddCategory={addCategory}
+                onUpdateCategory={updateCategory}
+                onDeleteCategory={deleteCategory}
+              />
+              {/* Empty state for wide view when sidebar is visible */}
+              <div className="empty-state-desktop">
+                <p>Select a category from the sidebar to get started</p>
+              </div>
+            </>
           )}
 
           {currentView === 'all-items' && (
