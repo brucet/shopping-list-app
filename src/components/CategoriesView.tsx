@@ -3,11 +3,6 @@ import { Droppable, Draggable } from 'react-beautiful-dnd'
 import type { Category, ItemsMap } from '../types'
 import '../styles/CategoriesView.css'
 
-const PRESET_COLORS = [
-  '#E8F5E9', '#F3E5F5', '#FFEBEE', '#FFF3E0', '#E0F2F1',
-  '#FCE4EC', '#F1F8E9', '#E3F2FD',
-]
-
 interface CategoriesViewProps {
   categories: Category[]
   items: ItemsMap
@@ -15,6 +10,7 @@ interface CategoriesViewProps {
   onAddCategory: (name: string, color: string) => void
   onUpdateCategory: (id: string, name: string, color: string) => void
   onDeleteCategory: (id: string) => void
+  presetColors: string[]
 }
 
 function CategoryCardMenu({ onEdit, onDelete, itemCount }: { onEdit: () => void; onDelete: () => void; itemCount: number }) {
@@ -54,24 +50,11 @@ function CategoryCardMenu({ onEdit, onDelete, itemCount }: { onEdit: () => void;
   )
 }
 
-export default function CategoriesView({ categories, items, onCategoryClick, onAddCategory, onUpdateCategory, onDeleteCategory }: CategoriesViewProps) {
+export default function CategoriesView({ categories, items, onCategoryClick, onAddCategory, onUpdateCategory, onDeleteCategory, presetColors }: CategoriesViewProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [editColor, setEditColor] = useState('')
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [newName, setNewName] = useState('')
-  const [newColor, setNewColor] = useState(PRESET_COLORS[0])
   const [hideEmpty, setHideEmpty] = useState(false)
-
-  const handleAddCategory = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (newName.trim()) {
-      onAddCategory(newName.trim(), newColor)
-      setNewName('')
-      setNewColor(PRESET_COLORS[0])
-      setShowAddForm(false)
-    }
-  }
 
   const startEdit = (category: Category) => {
     setEditingId(category.id)
@@ -105,18 +88,6 @@ export default function CategoriesView({ categories, items, onCategoryClick, onA
         </label>
       </div>
 
-      {showAddForm && (
-        <form className="add-category-form" onSubmit={handleAddCategory}>
-          <input type="text" placeholder="Category name" value={newName} onChange={(e) => setNewName(e.target.value)} className="category-input" autoFocus />
-          <div className="color-picker-inline">
-            {PRESET_COLORS.map((color) => (
-              <button key={color} type="button" className={`color-option ${newColor === color ? 'selected' : ''}`} style={{ backgroundColor: color }} onClick={() => setNewColor(color)} />
-            ))}
-          </div>
-          <button type="submit" className="save-category-btn">Add</button>
-        </form>
-      )}
-
       <Droppable droppableId="categories" type="CATEGORY">
         {(provided, snapshot) => (
           <div className={`categories-grid ${snapshot.isDraggingOver ? 'dragging-over' : ''}`} ref={provided.innerRef} {...provided.droppableProps}>
@@ -135,7 +106,7 @@ export default function CategoriesView({ categories, items, onCategoryClick, onA
                         <form className="category-edit-form" onSubmit={saveEdit} onClick={(e) => e.stopPropagation()}>
                           <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="category-input" autoFocus />
                           <div className="color-picker-inline">
-                            {PRESET_COLORS.map((color) => (
+                            {presetColors.map((color) => (
                               <button key={color} type="button" className={`color-option ${editColor === color ? 'selected' : ''}`} style={{ backgroundColor: color }} onClick={() => setEditColor(color)} />
                             ))}
                           </div>
@@ -166,28 +137,6 @@ export default function CategoriesView({ categories, items, onCategoryClick, onA
               )
             })}
             {provided.placeholder}
-
-            {showAddForm ? (
-              <div className="category-card add-category-card">
-                <form className="category-edit-form" onSubmit={handleAddCategory}>
-                  <input type="text" placeholder="Category name" value={newName} onChange={(e) => setNewName(e.target.value)} className="category-input" autoFocus />
-                  <div className="color-picker-inline">
-                    {PRESET_COLORS.map((color) => (
-                      <button key={color} type="button" className={`color-option ${newColor === color ? 'selected' : ''}`} style={{ backgroundColor: color }} onClick={() => setNewColor(color)} />
-                    ))}
-                  </div>
-                  <div className="edit-actions">
-                    <button type="submit" className="save-btn">✓</button>
-                    <button type="button" className="cancel-btn" onClick={() => setShowAddForm(false)}>✕</button>
-                  </div>
-                </form>
-              </div>
-            ) : (
-              <button className="category-card add-category-placeholder" onClick={() => setShowAddForm(true)}>
-                <span className="add-icon">+</span>
-                <span className="add-label">Add Category</span>
-              </button>
-            )}
           </div>
         )}
       </Droppable>

@@ -4,9 +4,10 @@ import '../styles/HeaderMenu.css'
 interface HeaderMenuProps {
   onRemoveDone: () => void
   onRemoveAll: () => void
+  onSetupSampleData: () => void
 }
 
-const HeaderMenu = ({ onRemoveDone, onRemoveAll }: HeaderMenuProps) => {
+const HeaderMenu = ({ onRemoveDone, onRemoveAll, onSetupSampleData }: HeaderMenuProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -41,6 +42,11 @@ const HeaderMenu = ({ onRemoveDone, onRemoveAll }: HeaderMenuProps) => {
     onRemoveAll()
   }
 
+  const handleSetupSampleData = () => {
+    setIsOpen(false)
+    onSetupSampleData()
+  }
+
   return (
     <div className="header-menu-container" ref={menuRef}>
       <button 
@@ -53,6 +59,10 @@ const HeaderMenu = ({ onRemoveDone, onRemoveAll }: HeaderMenuProps) => {
 
       {isOpen && (
         <div className="header-menu-dropdown">
+          <button className="header-menu-item" onClick={handleSetupSampleData}>
+            <span className="header-menu-icon">📊</span>
+            Setup Sample Data
+          </button>
           <button className="header-menu-item" onClick={handleRemoveDone}>
             <span className="header-menu-icon">✓</span>
             Remove Done Items

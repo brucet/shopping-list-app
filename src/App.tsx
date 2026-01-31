@@ -9,7 +9,13 @@ import HeldItemsView from './components/HeldItemsView'
 import SingleCategoryView from './components/SingleCategoryView'
 import { addEmojiToItem } from './utils/emojiMatcher'
 import type { Category, Item, ItemsMap, SuggestionsMap, HeldItem, ViewType } from './types'
+import { SAMPLE_CATEGORIES, SAMPLE_ITEMS } from './sample-data'
 import './App.css'
+
+const PRESET_COLORS = [
+  '#E8F5E9', '#F3E5F5', '#FFEBEE', '#FFF3E0', '#E0F2F1',
+  '#FCE4EC', '#F1F8E9', '#E3F2FD',
+]
 
 const DEFAULT_CATEGORIES: Category[] = [
   { id: '1', name: '🥬 Fruit & Veg', color: '#E8F5E9' },
@@ -74,6 +80,10 @@ const App = () => {
   )
   const [currentView, setCurrentView] = useState<ViewType>('categories')
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+
+  const [showInlineAddCategoryForm, setShowInlineAddCategoryForm] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [newCategoryColor, setNewCategoryColor] = useState(PRESET_COLORS[0])
 
   // Initialize view from URL on mount
   useEffect(() => {
@@ -456,6 +466,41 @@ const App = () => {
     setCurrentView('single-category')
   }
 
+  const setupSampleData = () => {
+    if (!confirm('This will replace your current list with sample data. Are you sure?')) return
+
+    const newSuggestions: SuggestionsMap = {}
+    Object.entries(SAMPLE_ITEMS).forEach(([categoryId, items]) => {
+      items.forEach(item => {
+        const normalizedText = item.text.replace(/^[\u{1F300}-\u{1F9FF}]\s*/u, '').toLowerCase()
+        newSuggestions[normalizedText] = {
+          text: item.text,
+          frequency: 1,
+          lastAdded: Date.now(),
+          categoryId: categoryId,
+        }
+      })
+    })
+
+    setCategories(SAMPLE_CATEGORIES)
+    setItems(SAMPLE_ITEMS)
+    setSuggestions(newSuggestions)
+    setHeldItems([])
+    setNextItemId(100)
+    setCurrentView('categories')
+    setSelectedCategoryId(null)
+  }
+
+  const handleInlineAddCategory = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newCategoryName.trim()) {
+      addCategory(newCategoryName.trim(), newCategoryColor)
+      setNewCategoryName('')
+      setNewCategoryColor(PRESET_COLORS[0])
+      setShowInlineAddCategoryForm(false)
+    }
+  }
+
   // Get the selected category object
   const selectedCategory = selectedCategoryId ? categories.find(c => c.id === selectedCategoryId) : null
 
@@ -463,7 +508,11 @@ const App = () => {
     <div className="app">
       <header className="app-header">
         <h1>🛒 Shopping List</h1>
-        <HeaderMenu onRemoveDone={removeDoneItems} onRemoveAll={removeAllItems} />
+        <HeaderMenu 
+          onRemoveDone={removeDoneItems} 
+          onRemoveAll={removeAllItems}
+          onSetupSampleData={setupSampleData} 
+        />
       </header>
 
       <div className="app-main">
@@ -486,13 +535,41 @@ const App = () => {
               )
             })}
             
-            {/* Add Category button in sidebar */}
-            <button
-              className="sidebar-item add-item"
-              onClick={() => handleViewChange('categories')}
-            >
-              <span className="sidebar-item-name">⚙️ Manage Categories</span>
-            </button>
+            {/* Inline Add Category form */}
+            {showInlineAddCategoryForm ? (
+              <form className="sidebar-add-category-form" onSubmit={handleInlineAddCategory}>
+                <input
+                  type="text"
+                  placeholder="New category name"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  autoFocus
+                  className="sidebar-category-input"
+                />
+                <div className="sidebar-color-picker">
+                  {PRESET_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`sidebar-color-option ${newCategoryColor === color ? 'selected' : ''}`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setNewCategoryColor(color)}
+                    />
+                  ))}
+                </div>
+                <div className="sidebar-add-category-actions">
+                  <button type="submit" className="sidebar-save-btn">✓ Add</button>
+                  <button type="button" className="sidebar-cancel-btn" onClick={() => setShowInlineAddCategoryForm(false)}>✕ Cancel</button>
+                </div>
+              </form>
+            ) : (
+              <button
+                className="sidebar-item add-category-toggle"
+                onClick={() => setShowInlineAddCategoryForm(true)}
+              >
+                <span className="sidebar-item-name">➕ Add New Category</span>
+              </button>
+            )}
           </nav>
         </aside>
 
@@ -507,6 +584,7 @@ const App = () => {
                 onAddCategory={addCategory}
                 onUpdateCategory={updateCategory}
                 onDeleteCategory={deleteCategory}
+                presetColors={PRESET_COLORS}
               />
               {/* Empty state for wide view when sidebar is visible */}
               <div className="empty-state-desktop">

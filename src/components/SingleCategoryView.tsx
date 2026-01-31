@@ -40,9 +40,12 @@ export default function SingleCategoryView({
     if (!inputValue.trim() || !showSuggestions) return []
     
     const query = inputValue.trim().toLowerCase()
+    const existingItems = new Set(items.map(item => item.text.toLowerCase()))
+
     return Object.entries(suggestions)
       .filter(([key]) => key.startsWith(query))
       .map(([, suggestion]) => suggestion)
+      .filter(suggestion => !existingItems.has(suggestion.text.toLowerCase()))
       .slice(0, 5)
   }
 
