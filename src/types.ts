@@ -29,4 +29,4 @@ export interface HeldItem {
   categoryId: string;
 }
 
-export type ViewType = 'categories' | 'all-items' | 'suggestions' | 'held-items' | 'single-category';
+export type ViewType = 'categories' | 'all-items' | 'suggestions' | 'held-items' | 'single-category' | 'history';

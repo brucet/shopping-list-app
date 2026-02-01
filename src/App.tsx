@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DragDropContext, DropResult, Droppable, Draggable } from 'react-beautiful-dnd';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, query, orderBy, getDoc, getDocs } from 'firebase/firestore'
+import debounce from 'lodash.debounce';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, query, orderBy, getDoc, getDocs, serverTimestamp } from 'firebase/firestore'
 import { db } from './firebase'
 import BottomNav from './components/BottomNav'
 import HeaderMenu from './components/HeaderMenu'
@@ -9,6 +10,7 @@ import AllItemsView from './components/AllItemsView'
 import SuggestionsView from './components/SuggestionsView'
 import HeldItemsView from './components/HeldItemsView'
 import SingleCategoryView from './components/SingleCategoryView'
+import HistoryView from './components/HistoryView';
 import { addEmojiToItem } from './utils/emojiMatcher'
 import type { Category, Item, SuggestionsMap, HeldItem, ViewType } from './types'
 import './App.css'
@@ -63,6 +65,28 @@ const App = () => {
     };
   }, []);
   
+  // Backup state on change
+  useEffect(() => {
+    const backupState = debounce(async () => {
+      const backupRef = doc(collection(db, "backups"));
+      await setDoc(backupRef, {
+        createdAt: serverTimestamp(),
+        categories,
+        items,
+        heldItems,
+        suggestions,
+      });
+    }, 2000);
+
+    if (categories.length > 0) {
+      backupState();
+    }
+
+    return () => {
+      backupState.cancel();
+    };
+  }, [categories, items, heldItems, suggestions]);
+
   // Initialize view from URL on mount
   useEffect(() => {
     const initializeFromUrl = () => {
@@ -483,25 +507,17 @@ const App = () => {
           </aside>
 
           <div style={{ flex: 1 }}>
-            {/* Categories view - only shown on mobile when sidebar is hidden */}
-            {currentView === 'categories' && (
-              <>
-                <CategoriesView
-                  categories={categories}
-                  items={items}
-                  onCategoryClick={handleCategoryClick}
-                  onUpdateCategory={updateCategory}
-                  onDeleteCategory={deleteCategory}
-                  presetColors={PRESET_COLORS}
-                />
-                {/* Empty state for wide view when sidebar is visible */}
-                <div className="empty-state-desktop">
-                  <p>Select a category from the sidebar to get started</p>
-                </div>
-              </>
-            )}
-
-            {currentView === 'all-items' && (
+            <div style={{ display: currentView === 'categories' ? 'block' : 'none', gridArea: '1 / 1' }}>
+              <CategoriesView
+                categories={categories}
+                items={items}
+                onCategoryClick={handleCategoryClick}
+                onUpdateCategory={updateCategory}
+                onDeleteCategory={deleteCategory}
+                presetColors={PRESET_COLORS}
+              />
+            </div>
+            <div style={{ display: currentView === 'all-items' ? 'block' : 'none', gridArea: '1 / 1' }}>
               <AllItemsView
                 categories={categories}
                 items={items}
@@ -511,9 +527,8 @@ const App = () => {
                 onChangeCategory={changeItemCategory}
                 onHoldItem={holdItem}
               />
-            )}
-
-            {currentView === 'suggestions' && (
+            </div>
+            <div style={{ display: currentView === 'suggestions' ? 'block' : 'none', gridArea: '1 / 1' }}>
               <SuggestionsView
                 suggestions={suggestions}
                 categories={categories}
@@ -522,38 +537,41 @@ const App = () => {
                 onEditSuggestion={editSuggestion}
                 onDeleteSuggestion={deleteSuggestion}
               />
-            )}
-
-            {currentView === 'held-items' && (
+            </div>
+            <div style={{ display: currentView === 'held-items' ? 'block' : 'none', gridArea: '1 / 1' }}>
               <HeldItemsView
                 heldItems={heldItems}
                 categories={categories}
                 onUnhold={unholdItem}
                 onDelete={deleteHeldItem}
               />
-            )}
-
-            {currentView === 'single-category' && selectedCategory && (
-              <SingleCategoryView
-                category={selectedCategory}
-                categories={categories}
-                items={items.filter(item => item.categoryId === selectedCategoryId)}
-                suggestions={suggestions}
-                onAddItem={addItem}
-                onRemoveItem={removeItem}
-                onToggleItem={toggleItemDone}
-                onEditItem={editItem}
-                onChangeCategory={changeItemCategory}
-                onHoldItem={holdItem}
-                onBack={() => handleViewChange('categories')}
-              />
-            )}
+            </div>
+            <div style={{ display: currentView === 'single-category' ? 'block' : 'none', gridArea: '1 / 1' }}>
+              {selectedCategory && (
+                <SingleCategoryView
+                  category={selectedCategory}
+                  categories={categories}
+                  items={items.filter(item => item.categoryId === selectedCategoryId)}
+                  suggestions={suggestions}
+                  onAddItem={addItem}
+                  onRemoveItem={removeItem}
+                  onToggleItem={toggleItemDone}
+                  onEditItem={editItem}
+                  onChangeCategory={changeItemCategory}
+                  onHoldItem={holdItem}
+                  onBack={() => handleViewChange('categories')}
+                />
+              )}
+            </div>
+            <div style={{ display: currentView === 'history' ? 'block' : 'none', gridArea: '1 / 1' }}>
+              <HistoryView />
+            </div>
           </div>
         </div>
       </DragDropContext>
 
       {/* Bottom Navigation */}
-      <BottomNav activeView={currentView === 'single-category' ? 'all-items' : currentView} onViewChange={handleViewChange} />
+      <BottomNav activeView={currentView} onViewChange={handleViewChange} />
     </div>
   )
 }
