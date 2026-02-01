@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { Droppable, Draggable } from 'react-beautiful-dnd'
 import ItemMenu from './ItemMenu'
 import type { Category, Item, SuggestionsMap } from '../types'
 import '../styles/SingleCategoryView.css'
@@ -10,11 +9,11 @@ interface SingleCategoryViewProps {
   items: Item[]
   suggestions: SuggestionsMap
   onAddItem: (categoryId: string, text: string) => void
-  onRemoveItem: (categoryId: string, itemId: string) => void
-  onToggleItem: (categoryId: string, itemId: string) => void
-  onEditItem: (categoryId: string, itemId: string, newText: string) => void
-  onChangeCategory: (fromCategoryId: string, itemId: string, toCategoryId: string) => void
-  onHoldItem: (categoryId: string, itemId: string) => void
+  onRemoveItem: (itemId: string) => void
+  onToggleItem: (itemId: string) => void
+  onEditItem: (itemId: string, newText: string) => void
+  onChangeCategory: (itemId: string, toCategoryId: string) => void
+  onHoldItem: (itemId: string) => void
   onBack: () => void
 }
 
@@ -67,93 +66,76 @@ export default function SingleCategoryView({
         </div>
       </div>
 
-      <Droppable droppableId={category.id} type="ITEM">
-        {(provided, snapshot) => (
-          <div
-            className={`single-category-items ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-          >
-            {items.length === 0 ? (
-              <p className="empty-state">No items yet</p>
-            ) : (
-              items
-                .sort((a, b) => {
-                  if (a.done && !b.done) return 1
-                  if (!a.done && b.done) return -1
-                  return 0
-                })
-                .map((item, index) => (
-                  <Draggable key={item.id} draggableId={item.id} index={index}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className={`single-item ${item.done ? 'done' : ''} ${
-                          snapshot.isDragging ? 'dragging' : ''
-                        } ${editingItemId === item.id ? 'editing' : ''}`}
-                      >
-                        {editingItemId === item.id ? (
-                          <form
-                            className="item-edit-form"
-                            onClick={(e) => e.stopPropagation()}
-                            onSubmit={(e) => {
-                              e.preventDefault()
-                              if (editingText.trim()) {
-                                onEditItem(category.id, item.id, editingText)
-                              }
-                              setEditingItemId(null)
-                            }}
-                          >
-                            <input
-                              type="text"
-                              value={editingText}
-                              onChange={(e) => setEditingText(e.target.value)}
-                              autoFocus
-                              className="edit-input"
-                            />
-                            <button type="submit" className="edit-save-btn">✓</button>
-                            <button
-                              type="button"
-                              className="edit-cancel-btn"
-                              onClick={() => setEditingItemId(null)}
-                            >
-                              ✕
-                            </button>
-                          </form>
-                        ) : (
-                          <>
-                            <span 
-                              className="item-text"
-                              onClick={() => onToggleItem(category.id, item.id)}
-                            >
-                              {item.text}
-                            </span>
-                            <ItemMenu
-                              onEdit={() => {
-                                setEditingItemId(item.id)
-                                setEditingText(item.text)
-                              }}
-                              onChangeCategory={(categoryId) => {
-                                onChangeCategory(category.id, item.id, categoryId)
-                              }}
-                              onDelete={() => onRemoveItem(category.id, item.id)}
-                              onHold={() => onHoldItem(category.id, item.id)}
-                              categories={categories}
-                              currentCategoryId={category.id}
-                            />
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </Draggable>
-                ))
-            )}
-            {provided.placeholder}
-          </div>
+      <div className="single-category-items">
+        {items.length === 0 ? (
+          <p className="empty-state">No items yet</p>
+        ) : (
+          items
+            .sort((a, b) => {
+              if (a.done && !b.done) return 1
+              if (!a.done && b.done) return -1
+              return 0
+            })
+            .map((item) => (
+              <div
+                key={item.id}
+                className={`single-item ${item.done ? 'done' : ''} ${editingItemId === item.id ? 'editing' : ''}`}
+              >
+                {editingItemId === item.id ? (
+                  <form
+                    className="item-edit-form"
+                    onClick={(e) => e.stopPropagation()}
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      if (editingText.trim()) {
+                        onEditItem(item.id, editingText)
+                      }
+                      setEditingItemId(null)
+                    }}
+                  >
+                    <input
+                      type="text"
+                      value={editingText}
+                      onChange={(e) => setEditingText(e.target.value)}
+                      autoFocus
+                      className="edit-input"
+                    />
+                    <button type="submit" className="edit-save-btn">✓</button>
+                    <button
+                      type="button"
+                      className="edit-cancel-btn"
+                      onClick={() => setEditingItemId(null)}
+                    >
+                      ✕
+                    </button>
+                  </form>
+                ) : (
+                  <>
+                    <span 
+                      className="item-text"
+                      onClick={() => onToggleItem(item.id)}
+                    >
+                      {item.text}
+                    </span>
+                    <ItemMenu
+                      onEdit={() => {
+                        setEditingItemId(item.id)
+                        setEditingText(item.text)
+                      }}
+                      onChangeCategory={(categoryId) => {
+                        onChangeCategory(item.id, categoryId)
+                      }}
+                      onDelete={() => onRemoveItem(item.id)}
+                      onHold={() => onHoldItem(item.id)}
+                      categories={categories}
+                      currentCategoryId={category.id}
+                    />
+                  </>
+                )}
+              </div>
+            ))
         )}
-      </Droppable>
+      </div>
 
       <div className="single-category-add-wrapper">
         <form className="single-category-add-form" onSubmit={handleSubmit}>

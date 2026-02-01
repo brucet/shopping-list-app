@@ -136,6 +136,15 @@
   background: rgba(102, 126, 234, 0.15);
 }
 
+.sidebar-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  cursor: grab;
+}
+
 /* Hide Manage Categories button on desktop - categories can be managed via mobile Categories tab */
 @media (min-width: 769px) {
   .sidebar-item.add-item {

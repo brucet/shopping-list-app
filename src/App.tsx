@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react'
-import { DragDropContext, DropResult } from 'react-beautiful-dnd'
+import { useState, useEffect } from 'react';
+import { DragDropContext, DropResult, Droppable, Draggable } from 'react-beautiful-dnd';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, query, orderBy, getDoc, getDocs } from 'firebase/firestore'
+import { db } from './firebase'
 import BottomNav from './components/BottomNav'
 import HeaderMenu from './components/HeaderMenu'
 import CategoriesView from './components/CategoriesView'
@@ -8,8 +10,7 @@ import SuggestionsView from './components/SuggestionsView'
 import HeldItemsView from './components/HeldItemsView'
 import SingleCategoryView from './components/SingleCategoryView'
 import { addEmojiToItem } from './utils/emojiMatcher'
-import type { Category, Item, ItemsMap, SuggestionsMap, HeldItem, ViewType } from './types'
-import { SAMPLE_CATEGORIES, SAMPLE_ITEMS } from './sample-data'
+import type { Category, Item, SuggestionsMap, HeldItem, ViewType } from './types'
 import './App.css'
 
 const PRESET_COLORS = [
@@ -17,74 +18,51 @@ const PRESET_COLORS = [
   '#FCE4EC', '#F1F8E9', '#E3F2FD',
 ]
 
-const DEFAULT_CATEGORIES: Category[] = [
-  { id: '1', name: '🥬 Fruit & Veg', color: '#E8F5E9' },
-  { id: '2', name: '🥛 Dairy', color: '#F3E5F5' },
-  { id: '3', name: '🥩 Meat & Fish', color: '#FFEBEE' },
-  { id: '4', name: '🥫 Pantry', color: '#FFF3E0' },
-  { id: '5', name: '❄️ Frozen', color: '#E0F2F1' },
-  { id: '6', name: '🍞 Bakery', color: '#FCE4EC' },
-  { id: '7', name: '🥚 Eggs & Proteins', color: '#FFF9C4' },
-  { id: '8', name: '🧀 Cheese & Dairy Alt', color: '#F1F8E9' },
-  { id: '9', name: '🥤 Beverages', color: '#E3F2FD' },
-  { id: '10', name: '🍫 Snacks & Sweets', color: '#F8BBD0' },
-  { id: '11', name: '🧂 Seasonings & Oils', color: '#FFECB3' },
-  { id: '12', name: '🧃 Condiments', color: '#B2DFDB' },
-]
-
-const DEFAULT_ITEMS: ItemsMap = {
-  '1': [{ id: '1-1', text: 'Apples' }, { id: '1-2', text: 'Carrots' }],
-  '2': [{ id: '2-1', text: 'Milk' }, { id: '2-2', text: 'Cheese' }],
-  '3': [],
-  '4': [{ id: '4-1', text: 'Rice' }],
-  '5': [],
-  '6': [],
-  '7': [],
-  '8': [],
-  '9': [],
-  '10': [],
-  '11': [],
-  '12': [],
-}
-
-const DEFAULT_SUGGESTIONS: SuggestionsMap = {}
-
-const DEFAULT_HELD_ITEMS: HeldItem[] = []
-
-// Load from localStorage or use defaults
-const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
-  try {
-    const saved = localStorage.getItem(key)
-    return saved ? JSON.parse(saved) : defaultValue
-  } catch (error) {
-    console.error(`Error loading ${key} from localStorage:`, error)
-    return defaultValue
-  }
-}
-
 const App = () => {
-  const [categories, setCategories] = useState<Category[]>(() => 
-    loadFromStorage('categories', DEFAULT_CATEGORIES)
-  )
-  const [items, setItems] = useState<ItemsMap>(() => 
-    loadFromStorage('items', DEFAULT_ITEMS)
-  )
-  const [heldItems, setHeldItems] = useState<HeldItem[]>(() => 
-    loadFromStorage('heldItems', DEFAULT_HELD_ITEMS)
-  )
-  const [suggestions, setSuggestions] = useState<SuggestionsMap>(() => 
-    loadFromStorage('suggestions', DEFAULT_SUGGESTIONS)
-  )
-  const [nextItemId, setNextItemId] = useState<number>(() => 
-    loadFromStorage('nextItemId', 100)
-  )
+  const [categories, setCategories] = useState<Category[]>([])
+  const [items, setItems] = useState<Item[]>([])
+  const [heldItems, setHeldItems] = useState<HeldItem[]>([])
+  const [suggestions, setSuggestions] = useState<SuggestionsMap>({})
   const [currentView, setCurrentView] = useState<ViewType>('categories')
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
 
   const [showInlineAddCategoryForm, setShowInlineAddCategoryForm] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryColor, setNewCategoryColor] = useState(PRESET_COLORS[0])
+  
+  // Firestore listeners
+  useEffect(() => {
+    const unsubscribeCategories = onSnapshot(query(collection(db, "categories"), orderBy("order")), (snapshot) => {
+      const cats = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Category));
+      setCategories(cats);
+    });
 
+    const unsubscribeItems = onSnapshot(collection(db, "items"), (snapshot) => {
+      const its = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Item));
+      setItems(its);
+    });
+    
+    const unsubscribeHeldItems = onSnapshot(collection(db, "heldItems"), (snapshot) => {
+      const hld = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as HeldItem));
+      setHeldItems(hld);
+    });
+
+    const unsubscribeSuggestions = onSnapshot(collection(db, "suggestions"), (snapshot) => {
+      const sugs = snapshot.docs.reduce((acc, doc) => {
+        acc[doc.id] = doc.data() as SuggestionsMap[string];
+        return acc;
+      }, {} as SuggestionsMap);
+      setSuggestions(sugs);
+    });
+
+    return () => {
+      unsubscribeCategories();
+      unsubscribeItems();
+      unsubscribeHeldItems();
+      unsubscribeSuggestions();
+    };
+  }, []);
+  
   // Initialize view from URL on mount
   useEffect(() => {
     const initializeFromUrl = () => {
@@ -95,7 +73,7 @@ const App = () => {
       
       if (view === 'category' && categoryId) {
         // Check if category exists
-        const categoryExists = categories.some(c => c.id === categoryId)
+        const categoryExists = categories.some((c: Category) => c.id === categoryId)
         if (categoryExists) {
           setCurrentView('single-category')
           setSelectedCategoryId(categoryId)
@@ -139,7 +117,7 @@ const App = () => {
       const [view, categoryId] = hash.split('/')
       
       if (view === 'category' && categoryId) {
-        const categoryExists = categories.some(c => c.id === categoryId)
+        const categoryExists = categories.some((c: Category) => c.id === categoryId)
         if (categoryExists) {
           setCurrentView('single-category')
           setSelectedCategoryId(categoryId)
@@ -158,302 +136,211 @@ const App = () => {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [categories])
 
-  // Save categories to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('categories', JSON.stringify(categories))
-  }, [categories])
-
-  // Save items to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('items', JSON.stringify(items))
-  }, [items])
-
-  // Save nextItemId to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('nextItemId', JSON.stringify(nextItemId))
-  }, [nextItemId])
-
-  // Save suggestions to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('suggestions', JSON.stringify(suggestions))
-  }, [suggestions])
-
-  // Save held items to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('heldItems', JSON.stringify(heldItems))
-  }, [heldItems])
-
   const handleDragEnd = (result: DropResult) => {
-    const { source, destination, type } = result
+    const { source, destination, type } = result;
 
-    if (!destination) return
+    if (!destination) {
+      return;
+    }
 
-    // If dragging a category
     if (type === 'CATEGORY') {
-      const newCategories = Array.from(categories)
-      const [removed] = newCategories.splice(source.index, 1)
-      newCategories.splice(destination.index, 0, removed)
-      setCategories(newCategories)
-      return
+      const newCategories = Array.from(categories);
+      const [removed] = newCategories.splice(source.index, 1);
+      newCategories.splice(destination.index, 0, removed);
+      setCategories(newCategories);
+
+      const batch = writeBatch(db);
+      newCategories.forEach((category, index) => {
+        const categoryRef = doc(db, "categories", category.id);
+        batch.update(categoryRef, { order: index });
+      });
+      batch.commit();
     }
+  };
 
-    // If dragging an item
-    const sourceId = source.droppableId
-    const destinationId = destination.droppableId
-
-    // If dropped in same position
-    if (sourceId === destinationId && source.index === destination.index) {
-      return
-    }
-
-    const sourceItems = Array.from(items[sourceId] || [])
-    const destItems = sourceId === destinationId ? sourceItems : Array.from(items[destinationId] || [])
-    const [draggedItem] = sourceItems.splice(source.index, 1)
-
-    if (sourceId !== destinationId) {
-      destItems.splice(destination.index, 0, draggedItem)
-      setItems({
-        ...items,
-        [sourceId]: sourceItems,
-        [destinationId]: destItems,
-      })
-    } else {
-      destItems.splice(destination.index, 0, draggedItem)
-      setItems({
-        ...items,
-        [sourceId]: destItems,
-      })
-    }
-  }
-
-  const addItem = (categoryId: string, text: string) => {
+  const addItem = async (categoryId: string, text: string) => {
     if (!text.trim()) return
 
     const itemText = addEmojiToItem(text.trim())
-    const newItem: Item = {
-      id: `${categoryId}-${nextItemId}`,
-      text: itemText,
-    }
-
-    setItems({
-      ...items,
-      [categoryId]: [...(items[categoryId] || []), newItem],
-    })
-    setNextItemId(nextItemId + 1)
-
+    const newItemRef = doc(collection(db, "items"));
+    await setDoc(newItemRef, { text: itemText, categoryId: categoryId, done: false });
+    
     // Update suggestions
     const textForMatching = text.trim()
     const normalizedText = textForMatching.toLowerCase()
-    setSuggestions(prev => ({
-      ...prev,
-      [normalizedText]: {
+    const suggestionRef = doc(db, "suggestions", normalizedText);
+    const suggestionDoc = await getDoc(suggestionRef);
+    if (suggestionDoc.exists()) {
+      await setDoc(suggestionRef, {
+        frequency: suggestionDoc.data().frequency + 1,
+        lastAdded: Date.now(),
+      }, { merge: true });
+    } else {
+      await setDoc(suggestionRef, {
         text: itemText,
-        frequency: (prev[normalizedText]?.frequency || 0) + 1,
+        frequency: 1,
         lastAdded: Date.now(),
         categoryId: categoryId,
-      }
-    }))
-  }
-
-  const removeItem = (categoryId: string, itemId: string) => {
-    setItems({
-      ...items,
-      [categoryId]: items[categoryId].filter((item) => item.id !== itemId),
-    })
-  }
-
-  const toggleItemDone = (categoryId: string, itemId: string) => {
-    setItems({
-      ...items,
-      [categoryId]: items[categoryId]
-        .map((item) =>
-          item.id === itemId ? { ...item, done: !item.done } : item
-        )
-        .sort((a, b) => {
-          // Sort done items to the bottom
-          if (a.done && !b.done) return 1
-          if (!a.done && b.done) return -1
-          return 0
-        }),
-    })
-  }
-
-  const addCategory = (name: string, color: string) => {
-    const newCategory: Category = {
-      id: Date.now().toString(),
-      name,
-      color,
+      });
     }
-    setCategories([...categories, newCategory])
-    setItems({
-      ...items,
-      [newCategory.id]: [],
-    })
   }
 
-  const updateCategory = (id: string, name: string, color: string) => {
-    setCategories(categories.map((cat) => (cat.id === id ? { ...cat, name, color } : cat)))
+  const removeItem = async (itemId: string) => {
+    const itemRef = doc(db, "items", itemId);
+    await deleteDoc(itemRef);
   }
 
-  const deleteCategory = (id: string) => {
-    setCategories(categories.filter((cat) => cat.id !== id))
-    const newItems = { ...items }
-    delete newItems[id]
-    setItems(newItems)
+  const toggleItemDone = async (itemId: string) => {
+    const itemRef = doc(db, "items", itemId);
+    const itemDoc = await getDoc(itemRef);
+    if (itemDoc.exists()) {
+      await setDoc(itemRef, { done: !itemDoc.data().done }, { merge: true });
+    }
+  }
+
+  const addCategory = async (name: string, color: string) => {
+    const newCategoryRef = doc(collection(db, "categories"));
+    await setDoc(newCategoryRef, { name, color, order: categories.length });
+  }
+
+  const updateCategory = async (id: string, name: string, color: string) => {
+    const categoryRef = doc(db, "categories", id);
+    await setDoc(categoryRef, { name, color }, { merge: true });
+  }
+
+  const deleteCategory = async (id: string) => {
+    const batch = writeBatch(db);
+    const categoryRef = doc(db, "categories", id);
+    batch.delete(categoryRef);
+
+    const categoryItems = items.filter(item => item.categoryId === id);
+    categoryItems.forEach(item => {
+      const itemRef = doc(db, "items", item.id);
+      batch.delete(itemRef);
+    });
+
+    await batch.commit();
+
     if (selectedCategoryId === id) {
-      setCurrentView('categories')
-      setSelectedCategoryId(null)
+      setCurrentView('categories');
+      setSelectedCategoryId(null);
     }
   }
 
-  const editItem = (categoryId: string, itemId: string, newText: string) => {
+  const editItem = async (itemId: string, newText: string) => {
     const itemText = addEmojiToItem(newText.trim())
+    const itemRef = doc(db, "items", itemId);
     
     // Find the old item to get its text for suggestion update
-    const oldItem = items[categoryId].find(item => item.id === itemId)
-    
-    setItems({
-      ...items,
-      [categoryId]: items[categoryId].map((item) =>
-        item.id === itemId ? { ...item, text: itemText } : item
-      ),
-    })
+    const oldItemDoc = await getDoc(itemRef);
+    const oldItem = oldItemDoc.data();
+
+    await setDoc(itemRef, { text: itemText }, { merge: true });
 
     // Update suggestions: rename the old suggestion key to new one if text changed
     if (oldItem && oldItem.text !== itemText) {
       const oldTextWithoutEmoji = oldItem.text.replace(/^[\u{1F300}-\u{1F9FF}]\s*/u, '').toLowerCase()
       const newTextWithoutEmoji = newText.trim().toLowerCase()
       
-      if (oldTextWithoutEmoji !== newTextWithoutEmoji && suggestions[oldTextWithoutEmoji]) {
-        const newSuggestions = { ...suggestions }
-        const oldSuggestion = newSuggestions[oldTextWithoutEmoji]
-        delete newSuggestions[oldTextWithoutEmoji]
-        newSuggestions[newTextWithoutEmoji] = {
-          ...oldSuggestion,
-          text: itemText,
+      if (oldTextWithoutEmoji !== newTextWithoutEmoji) {
+        const oldSuggestionRef = doc(db, "suggestions", oldTextWithoutEmoji);
+        const oldSuggestionDoc = await getDoc(oldSuggestionRef);
+        if (oldSuggestionDoc.exists()) {
+          const newSuggestionRef = doc(db, "suggestions", newTextWithoutEmoji);
+          await setDoc(newSuggestionRef, oldSuggestionDoc.data());
+          await deleteDoc(oldSuggestionRef);
         }
-        setSuggestions(newSuggestions)
       }
     }
   }
 
-  const changeItemCategory = (fromCategoryId: string, itemId: string, toCategoryId: string) => {
-    const item = items[fromCategoryId].find(i => i.id === itemId)
-    if (!item) return
-
-    setItems({
-      ...items,
-      [fromCategoryId]: items[fromCategoryId].filter(i => i.id !== itemId),
-      [toCategoryId]: [...(items[toCategoryId] || []), item],
-    })
+  const changeItemCategory = async (itemId: string, toCategoryId: string) => {
+    const itemRef = doc(db, "items", itemId);
+    await setDoc(itemRef, { categoryId: toCategoryId }, { merge: true });
   }
 
-  const removeDoneItems = () => {
+  const removeDoneItems = async () => {
     if (!confirm('Remove all completed items from your shopping list?')) return
 
-    const newItems: ItemsMap = {}
-    Object.keys(items).forEach(categoryId => {
-      newItems[categoryId] = items[categoryId].filter(item => !item.done)
-    })
-    setItems(newItems)
+    const batch = writeBatch(db);
+    items.forEach(item => {
+      if (item.done) {
+        const itemRef = doc(db, "items", item.id);
+        batch.delete(itemRef);
+      }
+    });
+    await batch.commit();
   }
 
-  const removeAllItems = () => {
+  const removeAllItems = async () => {
     if (!confirm('Remove ALL items from your shopping list? Held items will be moved back to their categories.')) return
 
-    // Move held items back to their categories
-    const newItems = { ...items }
-    heldItems.forEach(heldItem => {
-      if (newItems[heldItem.categoryId]) {
-        newItems[heldItem.categoryId].push({
-          id: heldItem.id,
-          text: heldItem.text,
-        })
-      }
-    })
-
-    // Clear held items
-    setHeldItems([])
-
-    // Clear all items from categories
-    categories.forEach(category => {
-      newItems[category.id] = []
-    })
-    setItems(newItems)
+    const batch = writeBatch(db);
+    items.forEach(item => {
+      const itemRef = doc(db, "items", item.id);
+      batch.delete(itemRef);
+    });
+    heldItems.forEach(item => {
+      const itemRef = doc(db, "heldItems", item.id);
+      batch.delete(itemRef);
+    });
+    await batch.commit();
   }
 
-  const holdItem = (categoryId: string, itemId: string) => {
-    const item = items[categoryId]?.find(i => i.id === itemId)
+  const holdItem = async (itemId: string) => {
+    const item = items.find(i => i.id === itemId)
     if (!item) return
 
-    // Add to held items
-    setHeldItems([...heldItems, {
-      id: item.id,
-      text: item.text,
-      categoryId: categoryId,
-    }])
+    const batch = writeBatch(db);
+    const itemRef = doc(db, "items", itemId);
+    const heldItemRef = doc(db, "heldItems", itemId);
 
-    // Remove from category
-    setItems({
-      ...items,
-      [categoryId]: items[categoryId].filter(i => i.id !== itemId),
-    })
+    batch.delete(itemRef);
+    batch.set(heldItemRef, { ...item });
+    
+    await batch.commit();
   }
 
-  const unholdItem = (itemId: string, categoryId: string) => {
+  const unholdItem = async (itemId: string, categoryId: string) => {
     const heldItem = heldItems.find(i => i.id === itemId)
     if (!heldItem) return
 
-    // Add back to category
-    setItems({
-      ...items,
-      [categoryId]: [...(items[categoryId] || []), {
-        id: heldItem.id,
-        text: heldItem.text,
-      }],
-    })
+    const batch = writeBatch(db);
+    const heldItemRef = doc(db, "heldItems", itemId);
+    const itemRef = doc(db, "items", itemId);
 
-    // Remove from held items
-    setHeldItems(heldItems.filter(i => i.id !== itemId))
+    batch.delete(heldItemRef);
+    batch.set(itemRef, { text: heldItem.text, categoryId, done: false });
+
+    await batch.commit();
   }
 
-  const deleteHeldItem = (itemId: string) => {
-    setHeldItems(heldItems.filter(i => i.id !== itemId))
+  const deleteHeldItem = async (itemId: string) => {
+    const heldItemRef = doc(db, "heldItems", itemId);
+    await deleteDoc(heldItemRef);
   }
 
-  const editSuggestion = (oldKey: string, newText: string, categoryId: string) => {
+  const editSuggestion = async (oldKey: string, newText: string, categoryId: string) => {
     const newKey = newText.toLowerCase()
-    const suggestion = suggestions[oldKey]
+    const suggestionRef = doc(db, "suggestions", oldKey);
+    const suggestionDoc = await getDoc(suggestionRef);
     
-    if (!suggestion) return
+    if (!suggestionDoc.exists()) return
 
-    // If the key changed, we need to remove old and add new
     if (oldKey !== newKey) {
-      const newSuggestions = { ...suggestions }
-      delete newSuggestions[oldKey]
-      newSuggestions[newKey] = {
-        ...suggestion,
-        text: addEmojiToItem(newText),
-        categoryId: categoryId,
-      }
-      setSuggestions(newSuggestions)
+      const batch = writeBatch(db);
+      const newSuggestionRef = doc(db, "suggestions", newKey);
+      batch.set(newSuggestionRef, { ...suggestionDoc.data(), text: addEmojiToItem(newText), categoryId });
+      batch.delete(suggestionRef);
+      await batch.commit();
     } else {
-      // Just update the text and category
-      setSuggestions({
-        ...suggestions,
-        [oldKey]: {
-          ...suggestion,
-          text: addEmojiToItem(newText),
-          categoryId: categoryId,
-        }
-      })
+      await setDoc(suggestionRef, { text: addEmojiToItem(newText), categoryId }, { merge: true });
     }
   }
 
-  const deleteSuggestion = (key: string) => {
-    const newSuggestions = { ...suggestions }
-    delete newSuggestions[key]
-    setSuggestions(newSuggestions)
+  const deleteSuggestion = async (key: string) => {
+    const suggestionRef = doc(db, "suggestions", key);
+    await deleteDoc(suggestionRef);
   }
 
   const handleViewChange = (view: ViewType) => {
@@ -466,29 +353,38 @@ const App = () => {
     setCurrentView('single-category')
   }
 
-  const setupSampleData = () => {
+  const setupSampleData = async () => {
     if (!confirm('This will replace your current list with sample data. Are you sure?')) return
 
-    const newSuggestions: SuggestionsMap = {}
+    const batch = writeBatch(db);
+
+    // Clear existing data
+    const categoriesSnapshot = await getDocs(collection(db, "categories"));
+    categoriesSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+    const itemsSnapshot = await getDocs(collection(db, "items"));
+    itemsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+    const heldItemsSnapshot = await getDocs(collection(db, "heldItems"));
+    heldItemsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+    const suggestionsSnapshot = await getDocs(collection(db, "suggestions"));
+    suggestionsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+    // Add sample data
+    const { SAMPLE_CATEGORIES, SAMPLE_ITEMS } = await import('./sample-data');
+    SAMPLE_CATEGORIES.forEach(category => {
+      const categoryRef = doc(db, "categories", category.id);
+      batch.set(categoryRef, category);
+    });
     Object.entries(SAMPLE_ITEMS).forEach(([categoryId, items]) => {
       items.forEach(item => {
-        const normalizedText = item.text.replace(/^[\u{1F300}-\u{1F9FF}]\s*/u, '').toLowerCase()
-        newSuggestions[normalizedText] = {
-          text: item.text,
-          frequency: 1,
-          lastAdded: Date.now(),
-          categoryId: categoryId,
-        }
-      })
-    })
+        const itemRef = doc(db, "items", item.id);
+        batch.set(itemRef, { ...item, categoryId });
+      });
+    });
 
-    setCategories(SAMPLE_CATEGORIES)
-    setItems(SAMPLE_ITEMS)
-    setSuggestions(newSuggestions)
-    setHeldItems([])
-    setNextItemId(100)
-    setCurrentView('categories')
-    setSelectedCategoryId(null)
+    await batch.commit();
+
+    setCurrentView('categories');
+    setSelectedCategoryId(null);
   }
 
   const handleInlineAddCategory = (e: React.FormEvent) => {
@@ -514,134 +410,147 @@ const App = () => {
           onSetupSampleData={setupSampleData} 
         />
       </header>
-
-      <div className="app-main">
-        {/* Desktop Sidebar */}
-        <aside className="sidebar">
-          <nav className="sidebar-nav">
-            {categories.map((category) => {
-              const remainingCount = (items[category.id] || []).filter(item => !item.done).length
-              const isActive = currentView === 'single-category' && selectedCategoryId === category.id
-              
-              return (
-                <button
-                  key={category.id}
-                  className={`sidebar-item ${isActive ? 'active' : ''}`}
-                  onClick={() => handleCategoryClick(category.id)}
-                >
-                  <span className="sidebar-item-name">{category.name}</span>
-                  <span className="sidebar-item-count">{remainingCount}</span>
-                </button>
-              )
-            })}
-            
-            {/* Inline Add Category form */}
-            {showInlineAddCategoryForm ? (
-              <form className="sidebar-add-category-form" onSubmit={handleInlineAddCategory}>
-                <input
-                  type="text"
-                  placeholder="New category name"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  autoFocus
-                  className="sidebar-category-input"
-                />
-                <div className="sidebar-color-picker">
-                  {PRESET_COLORS.map((color) => (
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="app-main">
+          {/* Desktop Sidebar */}
+          <aside className="sidebar">
+            <Droppable droppableId="sidebar" type="CATEGORY">
+              {(provided) => (
+                <nav className="sidebar-nav" ref={provided.innerRef} {...provided.droppableProps}>
+                  {categories.map((category, index) => {
+                    const remainingCount = items.filter(item => item.categoryId === category.id && !item.done).length
+                    const isActive = currentView === 'single-category' && selectedCategoryId === category.id
+                    
+                    return (
+                      <Draggable key={category.id} draggableId={category.id} index={index}>
+                        {(provided) => (
+                          <button
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={`sidebar-item ${isActive ? 'active' : ''}`}
+                            onClick={() => handleCategoryClick(category.id)}
+                          >
+                            <div className="sidebar-drag-handle" {...provided.dragHandleProps}>
+                              <span className="drag-indicator">⋮⋮</span>
+                            </div>
+                            <span className="sidebar-item-name">{category.name}</span>
+                            <span className="sidebar-item-count">{remainingCount}</span>
+                          </button>
+                        )}
+                      </Draggable>
+                    )
+                  })}
+                  {provided.placeholder}
+                  
+                  {/* Inline Add Category form */}
+                  {showInlineAddCategoryForm ? (
+                    <form className="sidebar-add-category-form" onSubmit={handleInlineAddCategory}>
+                      <input
+                        type="text"
+                        placeholder="New category name"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        autoFocus
+                        className="sidebar-category-input"
+                      />
+                      <div className="sidebar-color-picker">
+                        {PRESET_COLORS.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            className={`sidebar-color-option ${newCategoryColor === color ? 'selected' : ''}`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => setNewCategoryColor(color)}
+                          />
+                        ))}
+                      </div>
+                      <div className="sidebar-add-category-actions">
+                        <button type="submit" className="sidebar-save-btn">✓ Add</button>
+                        <button type="button" className="sidebar-cancel-btn" onClick={() => setShowInlineAddCategoryForm(false)}>✕ Cancel</button>
+                      </div>
+                    </form>
+                  ) : (
                     <button
-                      key={color}
-                      type="button"
-                      className={`sidebar-color-option ${newCategoryColor === color ? 'selected' : ''}`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => setNewCategoryColor(color)}
-                    />
-                  ))}
-                </div>
-                <div className="sidebar-add-category-actions">
-                  <button type="submit" className="sidebar-save-btn">✓ Add</button>
-                  <button type="button" className="sidebar-cancel-btn" onClick={() => setShowInlineAddCategoryForm(false)}>✕ Cancel</button>
-                </div>
-              </form>
-            ) : (
-              <button
-                className="sidebar-item add-category-toggle"
-                onClick={() => setShowInlineAddCategoryForm(true)}
-              >
-                <span className="sidebar-item-name">➕ Add New Category</span>
-              </button>
-            )}
-          </nav>
-        </aside>
+                      className="sidebar-item add-category-toggle"
+                      onClick={() => setShowInlineAddCategoryForm(true)}
+                    >
+                      <span className="sidebar-item-name">➕ Add New Category</span>
+                    </button>
+                  )}
+                </nav>
+              )}
+            </Droppable>
+          </aside>
 
-        <DragDropContext onDragEnd={handleDragEnd}>
-          {/* Categories view - only shown on mobile when sidebar is hidden */}
-          {currentView === 'categories' && (
-            <>
-              <CategoriesView
+          <div style={{ flex: 1 }}>
+            {/* Categories view - only shown on mobile when sidebar is hidden */}
+            {currentView === 'categories' && (
+              <>
+                <CategoriesView
+                  categories={categories}
+                  items={items}
+                  onCategoryClick={handleCategoryClick}
+                  onUpdateCategory={updateCategory}
+                  onDeleteCategory={deleteCategory}
+                  presetColors={PRESET_COLORS}
+                />
+                {/* Empty state for wide view when sidebar is visible */}
+                <div className="empty-state-desktop">
+                  <p>Select a category from the sidebar to get started</p>
+                </div>
+              </>
+            )}
+
+            {currentView === 'all-items' && (
+              <AllItemsView
                 categories={categories}
                 items={items}
-                onCategoryClick={handleCategoryClick}
-                onAddCategory={addCategory}
-                onUpdateCategory={updateCategory}
-                onDeleteCategory={deleteCategory}
-                presetColors={PRESET_COLORS}
+                onRemoveItem={removeItem}
+                onToggleItem={toggleItemDone}
+                onEditItem={editItem}
+                onChangeCategory={changeItemCategory}
+                onHoldItem={holdItem}
               />
-              {/* Empty state for wide view when sidebar is visible */}
-              <div className="empty-state-desktop">
-                <p>Select a category from the sidebar to get started</p>
-              </div>
-            </>
-          )}
+            )}
 
-          {currentView === 'all-items' && (
-            <AllItemsView
-              categories={categories}
-              items={items}
-              onRemoveItem={removeItem}
-              onToggleItem={toggleItemDone}
-              onEditItem={editItem}
-              onChangeCategory={changeItemCategory}
-              onHoldItem={holdItem}
-            />
-          )}
+            {currentView === 'suggestions' && (
+              <SuggestionsView
+                suggestions={suggestions}
+                categories={categories}
+                items={items}
+                onAddSuggestion={addItem}
+                onEditSuggestion={editSuggestion}
+                onDeleteSuggestion={deleteSuggestion}
+              />
+            )}
 
-          {currentView === 'suggestions' && (
-            <SuggestionsView
-              suggestions={suggestions}
-              categories={categories}
-              items={items}
-              onAddSuggestion={addItem}
-              onEditSuggestion={editSuggestion}
-              onDeleteSuggestion={deleteSuggestion}
-            />
-          )}
+            {currentView === 'held-items' && (
+              <HeldItemsView
+                heldItems={heldItems}
+                categories={categories}
+                onUnhold={unholdItem}
+                onDelete={deleteHeldItem}
+              />
+            )}
 
-          {currentView === 'held-items' && (
-            <HeldItemsView
-              heldItems={heldItems}
-              categories={categories}
-              onUnhold={unholdItem}
-              onDelete={deleteHeldItem}
-            />
-          )}
-
-          {currentView === 'single-category' && selectedCategory && (
-            <SingleCategoryView
-              category={selectedCategory}
-              categories={categories}
-              items={items[selectedCategory.id] || []}
-              suggestions={suggestions}
-              onAddItem={addItem}
-              onRemoveItem={removeItem}
-              onToggleItem={toggleItemDone}
-              onEditItem={editItem}
-              onChangeCategory={changeItemCategory}
-              onHoldItem={holdItem}
-              onBack={() => handleViewChange('categories')}
-            />
-          )}
-        </DragDropContext>
-      </div>
+            {currentView === 'single-category' && selectedCategory && (
+              <SingleCategoryView
+                category={selectedCategory}
+                categories={categories}
+                items={items.filter(item => item.categoryId === selectedCategoryId)}
+                suggestions={suggestions}
+                onAddItem={addItem}
+                onRemoveItem={removeItem}
+                onToggleItem={toggleItemDone}
+                onEditItem={editItem}
+                onChangeCategory={changeItemCategory}
+                onHoldItem={holdItem}
+                onBack={() => handleViewChange('categories')}
+              />
+            )}
+          </div>
+        </div>
+      </DragDropContext>
 
       {/* Bottom Navigation */}
       <BottomNav activeView={currentView === 'single-category' ? 'all-items' : currentView} onViewChange={handleViewChange} />

@@ -2,16 +2,14 @@ export interface Category {
   id: string;
   name: string;
   color: string;
+  order: number;
 }
 
 export interface Item {
   id: string;
   text: string;
   done?: boolean;
-}
-
-export interface ItemsMap {
-  [categoryId: string]: Item[];
+  categoryId: string;
 }
 
 export interface Suggestion {

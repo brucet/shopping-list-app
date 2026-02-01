@@ -1,30 +1,23 @@
 import { useState } from 'react'
 import ItemMenu from './ItemMenu'
-import type { Category, ItemsMap } from '../types'
+import type { Category, Item } from '../types'
 import '../styles/AllItemsView.css'
 
 interface AllItemsViewProps {
   categories: Category[]
-  items: ItemsMap
-  onRemoveItem: (categoryId: string, itemId: string) => void
-  onToggleItem: (categoryId: string, itemId: string) => void
-  onEditItem: (categoryId: string, itemId: string, newText: string) => void
-  onChangeCategory: (fromCategoryId: string, itemId: string, toCategoryId: string) => void
-  onHoldItem: (categoryId: string, itemId: string) => void
+  items: Item[]
+  onRemoveItem: (itemId: string) => void
+  onToggleItem: (itemId: string) => void
+  onEditItem: (itemId: string, newText: string) => void
+  onChangeCategory: (itemId: string, toCategoryId: string) => void
+  onHoldItem: (itemId: string) => void
 }
 
 const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditItem, onChangeCategory, onHoldItem }: AllItemsViewProps) => {
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [editingText, setEditingText] = useState('')
 
-  const allItems = categories.flatMap((category) =>
-    (items[category.id] || []).map((item) => ({
-      ...item,
-      categoryId: category.id,
-      categoryName: category.name,
-      categoryColor: category.color,
-    }))
-  )
+  const allItems = items;
 
   const getCategoryColor = (categoryId: string): string => {
     const category = categories.find(c => c.id === categoryId)
@@ -62,7 +55,7 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
                     onSubmit={(e) => {
                       e.preventDefault()
                       if (editingText.trim()) {
-                        onEditItem(item.categoryId, item.id, editingText)
+                        onEditItem(item.id, editingText)
                       }
                       setEditingItemId(null)
                     }}
@@ -87,7 +80,7 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
                   <>
                     <div
                       className="item-content"
-                      onClick={() => onToggleItem(item.categoryId, item.id)}
+                      onClick={() => onToggleItem(item.id)}
                     >
                       <span className="item-text">{item.text}</span>
                       <span 
@@ -103,10 +96,10 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
                         setEditingText(item.text)
                       }}
                       onChangeCategory={(categoryId) => {
-                        onChangeCategory(item.categoryId, item.id, categoryId)
+                        onChangeCategory(item.id, categoryId)
                       }}
-                      onDelete={() => onRemoveItem(item.categoryId, item.id)}
-                      onHold={() => onHoldItem(item.categoryId, item.id)}
+                      onDelete={() => onRemoveItem(item.id)}
+                      onHold={() => onHoldItem(item.id)}
                       categories={categories}
                       currentCategoryId={item.categoryId}
                     />
@@ -119,5 +112,6 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
     </div>
   )
 }
+
 
 export default AllItemsView

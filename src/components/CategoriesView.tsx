@@ -1,13 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Droppable, Draggable } from 'react-beautiful-dnd'
-import type { Category, ItemsMap } from '../types'
+import type { Category, Item } from '../types'
 import '../styles/CategoriesView.css'
 
 interface CategoriesViewProps {
   categories: Category[]
-  items: ItemsMap
+  items: Item[]
   onCategoryClick: (categoryId: string) => void
-  onAddCategory: (name: string, color: string) => void
   onUpdateCategory: (id: string, name: string, color: string) => void
   onDeleteCategory: (id: string) => void
   presetColors: string[]
@@ -50,7 +49,7 @@ function CategoryCardMenu({ onEdit, onDelete, itemCount }: { onEdit: () => void;
   )
 }
 
-export default function CategoriesView({ categories, items, onCategoryClick, onAddCategory, onUpdateCategory, onDeleteCategory, presetColors }: CategoriesViewProps) {
+export default function CategoriesView({ categories, items, onCategoryClick, onUpdateCategory, onDeleteCategory, presetColors }: CategoriesViewProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [editColor, setEditColor] = useState('')
@@ -88,12 +87,13 @@ export default function CategoriesView({ categories, items, onCategoryClick, onA
         </label>
       </div>
 
-      <Droppable droppableId="categories" type="CATEGORY">
+      <Droppable droppableId="categories-view" type="CATEGORY">
         {(provided, snapshot) => (
           <div className={`categories-grid ${snapshot.isDraggingOver ? 'dragging-over' : ''}`} ref={provided.innerRef} {...provided.droppableProps}>
             {categories.map((category, index) => {
-              const itemCount = (items[category.id] || []).length
-              const remainingCount = (items[category.id] || []).filter(item => !item.done).length
+              const categoryItems = items.filter(item => item.categoryId === category.id)
+              const itemCount = categoryItems.length
+              const remainingCount = categoryItems.filter(item => !item.done).length
               const isEditing = editingId === category.id
 
               if (hideEmpty && remainingCount === 0) return null

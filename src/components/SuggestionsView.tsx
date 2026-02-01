@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import type { Category, ItemsMap, SuggestionsMap } from '../types'
+import type { Category, Item, SuggestionsMap } from '../types'
 import '../styles/SuggestionsView.css'
 
 interface SuggestionsViewProps {
   suggestions: SuggestionsMap
   categories: Category[]
-  items: ItemsMap
+  items: Item[]
   onAddSuggestion: (categoryId: string, text: string) => void
   onEditSuggestion: (oldKey: string, newText: string, categoryId: string) => void
   onDeleteSuggestion: (key: string) => void
@@ -62,12 +62,10 @@ export default function SuggestionsView({ suggestions, categories, items, onAddS
   }
 
   const itemsInList = new Set<string>()
-  Object.values(items).forEach(categoryItems => {
-    categoryItems.forEach(item => {
-      const textWithoutEmoji = item.text.replace(/^[\u{1F300}-\u{1F9FF}]\s*/u, '').toLowerCase()
-      itemsInList.add(textWithoutEmoji)
-      itemsInList.add(item.text.toLowerCase())
-    })
+  items.forEach(item => {
+    const textWithoutEmoji = item.text.replace(/^[\u{1F300}-\u{1F9FF}]\s*/u, '').toLowerCase()
+    itemsInList.add(textWithoutEmoji)
+    itemsInList.add(item.text.toLowerCase())
   })
 
   const sortedSuggestions = Object.entries(suggestions)
