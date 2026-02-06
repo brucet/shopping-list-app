@@ -89,9 +89,8 @@ export default function SingleCategoryView({
                 onHoldItem={onHoldItem}
                 className="single-item"
               />
-            ))}
+            )))}
         </div>
-      )}
       <div className="single-category-add-wrapper">
         <form className="single-category-add-form" onSubmit={handleSubmit}>
           <input

@@ -273,7 +273,7 @@ const App = () => {
 
     const updatedItem = {
       text: itemText,
-      ...(quantity !== undefined && { quantity: quantity }),
+      quantity: quantity === undefined ? null : quantity,
     };
     await setDoc(itemRef, updatedItem, { merge: true });
 
@@ -368,7 +368,7 @@ const App = () => {
     
     const updatedItem = {
       text: itemText,
-      ...(newQuantity !== undefined && { quantity: newQuantity }),
+      quantity: newQuantity === undefined ? null : newQuantity,
     };
     await setDoc(itemRef, updatedItem, { merge: true });
   }

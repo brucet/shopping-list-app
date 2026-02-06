@@ -47,7 +47,7 @@ const LineItem = ({ item, categories, onRemoveItem, onToggleItem, onEditItem, on
   return (
     <div
       key={item.id}
-      className={`list-item ${item.done ? 'done' : ''} ${editingItemId === item.id ? 'editing' : ''}`}
+      className={`${className} list-item ${item.done ? 'done' : ''} ${editingItemId === item.id ? 'editing' : ''}`}
     >
       {editingItemId === item.id ? (
         <form
