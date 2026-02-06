@@ -12,6 +12,7 @@ import HeldItemsView from './components/HeldItemsView'
 import SingleCategoryView from './components/SingleCategoryView'
 import HistoryView from './components/HistoryView';
 import { addEmojiToItem } from './utils/emojiMatcher'
+import { parseItemText } from './utils/itemParser';
 import type { Category, Item, SuggestionsMap, HeldItem, ViewType } from './types'
 import './App.css'
 
@@ -183,11 +184,19 @@ const App = () => {
   };
 
   const addItem = async (categoryId: string, text: string, quantity?: number) => {
-    if (!text.trim()) return
+    const { text: newText, quantity: newQuantity } = parseItemText(text);
+    if (!newText.trim()) return
 
-    const itemText = addEmojiToItem(text.trim())
+    const capitalizedText = newText.trim().charAt(0).toUpperCase() + newText.trim().slice(1);
+    const itemText = addEmojiToItem(capitalizedText)
     const newItemRef = doc(collection(db, "items"));
-    await setDoc(newItemRef, { text: itemText, categoryId: categoryId, done: false, quantity });
+    const newItem = {
+      text: itemText,
+      categoryId,
+      done: false,
+      ...(newQuantity && { quantity: newQuantity }),
+    };
+    await setDoc(newItemRef, newItem);
     
     // Update suggestions
     const textForMatching = text.trim()
@@ -252,14 +261,20 @@ const App = () => {
   }
 
   const editItem = async (itemId: string, newText: string, newQuantity?: number) => {
-    const itemText = addEmojiToItem(newText.trim())
+    const { text, quantity } = parseItemText(newText);
+    const capitalizedText = text.trim().charAt(0).toUpperCase() + text.trim().slice(1);
+    const itemText = addEmojiToItem(capitalizedText)
     const itemRef = doc(db, "items", itemId);
     
     // Find the old item to get its text for suggestion update
     const oldItemDoc = await getDoc(itemRef);
     const oldItem = oldItemDoc.data();
 
-    await setDoc(itemRef, { text: itemText, quantity: newQuantity }, { merge: true });
+    const updatedItem = {
+      text: itemText,
+      ...(quantity && { quantity: quantity }),
+    };
+    await setDoc(itemRef, updatedItem, { merge: true });
 
     // Update suggestions: rename the old suggestion key to new one if text changed
     if (oldItem && oldItem.text !== itemText) {
