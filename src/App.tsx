@@ -182,12 +182,12 @@ const App = () => {
     }
   };
 
-  const addItem = async (categoryId: string, text: string) => {
+  const addItem = async (categoryId: string, text: string, quantity?: number) => {
     if (!text.trim()) return
 
     const itemText = addEmojiToItem(text.trim())
     const newItemRef = doc(collection(db, "items"));
-    await setDoc(newItemRef, { text: itemText, categoryId: categoryId, done: false });
+    await setDoc(newItemRef, { text: itemText, categoryId: categoryId, done: false, quantity });
     
     // Update suggestions
     const textForMatching = text.trim()
@@ -251,7 +251,7 @@ const App = () => {
     }
   }
 
-  const editItem = async (itemId: string, newText: string) => {
+  const editItem = async (itemId: string, newText: string, newQuantity?: number) => {
     const itemText = addEmojiToItem(newText.trim())
     const itemRef = doc(db, "items", itemId);
     
@@ -259,7 +259,7 @@ const App = () => {
     const oldItemDoc = await getDoc(itemRef);
     const oldItem = oldItemDoc.data();
 
-    await setDoc(itemRef, { text: itemText }, { merge: true });
+    await setDoc(itemRef, { text: itemText, quantity: newQuantity }, { merge: true });
 
     // Update suggestions: rename the old suggestion key to new one if text changed
     if (oldItem && oldItem.text !== itemText) {

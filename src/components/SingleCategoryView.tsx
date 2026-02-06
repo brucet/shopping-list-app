@@ -8,10 +8,10 @@ interface SingleCategoryViewProps {
   categories: Category[]
   items: Item[]
   suggestions: SuggestionsMap
-  onAddItem: (categoryId: string, text: string) => void
+  onAddItem: (categoryId: string, text: string, quantity?: number) => void
   onRemoveItem: (itemId: string) => void
   onToggleItem: (itemId: string) => void
-  onEditItem: (itemId: string, newText: string) => void
+  onEditItem: (itemId: string, newText: string, newQuantity?: number) => void
   onChangeCategory: (itemId: string, toCategoryId: string) => void
   onHoldItem: (itemId: string) => void
   onBack: () => void
@@ -31,8 +31,10 @@ export default function SingleCategoryView({
   onBack,
 }: SingleCategoryViewProps) {
   const [inputValue, setInputValue] = useState('')
+  const [quantity, setQuantity] = useState<number | undefined>(undefined)
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [editingText, setEditingText] = useState('')
+  const [editingQuantity, setEditingQuantity] = useState<number | undefined>(undefined)
   const [showSuggestions, setShowSuggestions] = useState(false)
 
   const getMatchingSuggestions = () => {
@@ -50,8 +52,9 @@ export default function SingleCategoryView({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onAddItem(category.id, inputValue)
+    onAddItem(category.id, inputValue, quantity)
     setInputValue('')
+    setQuantity(undefined)
   }
 
   return (
@@ -88,7 +91,7 @@ export default function SingleCategoryView({
                     onSubmit={(e) => {
                       e.preventDefault()
                       if (editingText.trim()) {
-                        onEditItem(item.id, editingText)
+                        onEditItem(item.id, editingText, editingQuantity)
                       }
                       setEditingItemId(null)
                     }}
@@ -99,6 +102,12 @@ export default function SingleCategoryView({
                       onChange={(e) => setEditingText(e.target.value)}
                       autoFocus
                       className="edit-input"
+                    />
+                    <input
+                      type="number"
+                      value={editingQuantity}
+                      onChange={(e) => setEditingQuantity(parseInt(e.target.value))}
+                          className="edit-quantity-input"
                     />
                     <button type="submit" className="edit-save-btn">✓</button>
                     <button
@@ -115,12 +124,13 @@ export default function SingleCategoryView({
                       className="item-text"
                       onClick={() => onToggleItem(item.id)}
                     >
-                      {item.text}
+                      {item.text} {item.quantity && `(x${item.quantity})`}
                     </span>
                     <ItemMenu
                       onEdit={() => {
                         setEditingItemId(item.id)
                         setEditingText(item.text)
+                        setEditingQuantity(item.quantity)
                       }}
                       onChangeCategory={(categoryId) => {
                         onChangeCategory(item.id, categoryId)
@@ -147,6 +157,13 @@ export default function SingleCategoryView({
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             className="add-item-input"
+          />
+          <input
+            type="number"
+            placeholder="Qty"
+            value={quantity}
+            onChange={(e) => setQuantity(parseInt(e.target.value))}
+            className="add-quantity-input"
           />
           <button type="submit" className="add-item-btn">
             Add Item

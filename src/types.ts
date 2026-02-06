@@ -10,6 +10,7 @@ export interface Item {
   text: string;
   done?: boolean;
   categoryId: string;
+  quantity?: number;
 }
 
 export interface Suggestion {

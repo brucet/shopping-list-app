@@ -8,7 +8,7 @@ interface AllItemsViewProps {
   items: Item[]
   onRemoveItem: (itemId: string) => void
   onToggleItem: (itemId: string) => void
-  onEditItem: (itemId: string, newText: string) => void
+  onEditItem: (itemId: string, newText: string, newQuantity?: number) => void
   onChangeCategory: (itemId: string, toCategoryId: string) => void
   onHoldItem: (itemId: string) => void
 }
@@ -16,6 +16,7 @@ interface AllItemsViewProps {
 const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditItem, onChangeCategory, onHoldItem }: AllItemsViewProps) => {
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [editingText, setEditingText] = useState('')
+  const [editingQuantity, setEditingQuantity] = useState<number | undefined>(undefined)
 
   const allItems = items;
 
@@ -55,7 +56,7 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
                     onSubmit={(e) => {
                       e.preventDefault()
                       if (editingText.trim()) {
-                        onEditItem(item.id, editingText)
+                        onEditItem(item.id, editingText, editingQuantity)
                       }
                       setEditingItemId(null)
                     }}
@@ -66,6 +67,12 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
                       onChange={(e) => setEditingText(e.target.value)}
                       autoFocus
                       className="edit-input"
+                    />
+                    <input
+                      type="number"
+                      value={editingQuantity}
+                      onChange={(e) => setEditingQuantity(parseInt(e.target.value))}
+                      className="edit-quantity-input"
                     />
                     <button type="submit" className="edit-save-btn">✓</button>
                     <button
@@ -82,7 +89,7 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
                       className="item-content"
                       onClick={() => onToggleItem(item.id)}
                     >
-                      <span className="item-text">{item.text}</span>
+                      <span className="item-text">{item.text} {item.quantity && `(x${item.quantity})`}</span>
                       <span 
                         className="item-category-badge"
                         style={{ backgroundColor: getCategoryColor(item.categoryId) }}
@@ -94,6 +101,7 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
                       onEdit={() => {
                         setEditingItemId(item.id)
                         setEditingText(item.text)
+                        setEditingQuantity(item.quantity)
                       }}
                       onChangeCategory={(categoryId) => {
                         onChangeCategory(item.id, categoryId)
