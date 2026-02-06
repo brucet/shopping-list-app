@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
 import type { Category, HeldItem } from '../types'
 import '../styles/HeldItemsView.css'
+import HeldLineItem from './HeldLineItem'
 
 interface HeldItemsViewProps {
   heldItems: HeldItem[]
@@ -11,39 +11,6 @@ interface HeldItemsViewProps {
 }
 
 const HeldItemsView = ({ heldItems, categories, onUnhold, onDelete, onEditItem }: HeldItemsViewProps) => {
-  const [editingItemId, setEditingItemId] = useState<string | null>(null)
-  const [editingText, setEditingText] = useState('')
-
-  const [editingInlineQuantityId, setEditingInlineQuantityId] = useState<string | null>(null);
-  const [inlineQuantityValue, setInlineQuantityValue] = useState<string>('');
-  const inlineQuantityInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (editingInlineQuantityId && inlineQuantityInputRef.current) {
-      inlineQuantityInputRef.current.focus();
-    }
-  }, [editingInlineQuantityId]);
-
-  const handleInlineQuantitySubmit = (itemId: string, currentText: string) => {
-    const newQuantity = parseInt(inlineQuantityValue, 10);
-    if (!isNaN(newQuantity) && newQuantity > 0) {
-      onEditItem(itemId, currentText, newQuantity);
-    } else {
-      onEditItem(itemId, currentText, undefined); // Remove quantity if invalid or empty
-    }
-    setEditingInlineQuantityId(null);
-    setInlineQuantityValue('');
-  };
-
-  const getCategoryName = (categoryId: string): string => {
-    const category = categories.find(c => c.id === categoryId)
-    return category ? category.name : 'Unknown'
-  }
-
-  const getCategoryColor = (categoryId: string): string => {
-    const category = categories.find(c => c.id === categoryId)
-    return category ? category.color : '#f0f0f0'
-  }
 
   return (
     <div className="held-items-view">
@@ -59,102 +26,15 @@ const HeldItemsView = ({ heldItems, categories, onUnhold, onDelete, onEditItem }
       ) : (
         <div className="held-items-list">
           {heldItems.map((item) => (
-            <div key={item.id} className={`held-item ${editingItemId === item.id ? 'editing' : ''}`}>
-              {editingItemId === item.id ? (
-                <form
-                  className="item-edit-form"
-                  onClick={(e) => e.stopPropagation()}
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    if (editingText.trim()) {
-                      onEditItem(item.id, editingText)
-                    }
-                    setEditingItemId(null)
-                  }}
-                >
-                  <input
-                    type="text"
-                    value={editingText}
-                    onChange={(e) => setEditingText(e.target.value)}
-                    autoFocus
-                    className="edit-input"
-                  />
-
-                  <button type="submit" className="edit-save-btn">✓</button>
-                  <button
-                    type="button"
-                    className="edit-cancel-btn"
-                    onClick={() => setEditingItemId(null)}
-                  >
-                    ✕
-                  </button>
-                </form>
-              ) : (
-                <>
-                  <div className="held-item-content">
-                    <span className="held-item-text">
-                      {item.quantity ? (
-                        <span className="item-quantity">{item.quantity} </span>
-                      ) : (
-                        editingInlineQuantityId === item.id ? (
-                          <input
-                            type="number"
-                            ref={inlineQuantityInputRef}
-                            className="item-quantity-inline-input"
-                            value={inlineQuantityValue}
-                            onChange={(e) => setInlineQuantityValue(e.target.value)}
-                            onBlur={() => handleInlineQuantitySubmit(item.id, item.text)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handleInlineQuantitySubmit(item.id, item.text);
-                              } else if (e.key === 'Escape') {
-                                setEditingInlineQuantityId(null);
-                                setInlineQuantityValue('');
-                              }
-                            }}
-                            onClick={(e) => e.stopPropagation()} // Prevent toggling 'done'
-                          />
-                        ) : (
-                          <span
-                            className="item-quantity"
-                            onClick={(e) => {
-                              e.stopPropagation(); // prevent toggling 'done'
-                              setEditingInlineQuantityId(item.id);
-                              setInlineQuantityValue(item.quantity?.toString() || '');
-                            }}
-                          >
-                            #
-                          </span>
-                        )
-                      )}
-                      {item.text}
-                    </span>
-                    <span
-                      className="held-item-category"
-                      style={{ backgroundColor: getCategoryColor(item.categoryId) }}
-                    >
-                      {getCategoryName(item.categoryId)}
-                    </span>
-                  </div>
-                  <div className="held-item-actions">
-                    <button
-                      className="unhold-btn"
-                      onClick={() => onUnhold(item.id, item.categoryId)}
-                      title="Put back in category"
-                    >
-                      ↩️
-                    </button>
-                    <button
-                      className="delete-held-btn"
-                      onClick={() => onDelete(item.id)}
-                      title="Delete held item"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
+            <HeldLineItem
+              key={item.id}
+              item={item}
+              categories={categories}
+              onUnhold={onUnhold}
+              onDelete={onDelete}
+              onEditItem={onEditItem}
+              className="held-item"
+            />
           ))}
         </div>
       )}
