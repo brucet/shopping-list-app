@@ -1,0 +1,31 @@
+.history-view {
+  padding: 16px;
+}
+
+.history-header {
+  margin-bottom: 16px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.restore-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #667eea;
+  color: white;
+  cursor: pointer;
+}
