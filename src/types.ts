@@ -28,6 +28,7 @@ export interface HeldItem {
   id: string;
   text: string;
   categoryId: string;
+  quantity?: number;
 }
 
 export type ViewType = 'categories' | 'all-items' | 'suggestions' | 'held-items' | 'single-category' | 'history';

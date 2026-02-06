@@ -1,0 +1,24 @@
+.item-quantity {
+  cursor: pointer;
+  font-weight: bold;
+  display: inline-block;
+  padding: 0px 8px;
+}
+
+.item-quantity-placeholder {
+  color: #ccc;
+  cursor: pointer;
+  display: inline-block;
+  padding: 0px 8px;
+}
+
+.item-quantity-inline-input {
+  width: 40px; /* Adjust as needed */
+  padding: 2px 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 5px;
+  font-size: 14px;
+  text-align: center;
+}
+

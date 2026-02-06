@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import ItemMenu from './ItemMenu'
 import type { Category, Item, SuggestionsMap } from '../types'
 import '../styles/SingleCategoryView.css'
+import '../styles/Item.css'
 
 interface SingleCategoryViewProps {
   category: Category
@@ -34,8 +35,28 @@ export default function SingleCategoryView({
   const [quantity, setQuantity] = useState<number | undefined>(undefined)
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [editingText, setEditingText] = useState('')
-  const [editingQuantity, setEditingQuantity] = useState<number | undefined>(undefined)
+
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [editingInlineQuantityId, setEditingInlineQuantityId] = useState<string | null>(null);
+  const [inlineQuantityValue, setInlineQuantityValue] = useState<string>('');
+  const inlineQuantityInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingInlineQuantityId && inlineQuantityInputRef.current) {
+      inlineQuantityInputRef.current.focus();
+    }
+  }, [editingInlineQuantityId]);
+
+  const handleInlineQuantitySubmit = (itemId: string, currentText: string) => {
+    const newQuantity = parseInt(inlineQuantityValue, 10);
+    if (!isNaN(newQuantity) && newQuantity > 0) {
+      onEditItem(itemId, currentText, newQuantity);
+    } else {
+      onEditItem(itemId, currentText, undefined); // Remove quantity if invalid or empty
+    }
+    setEditingInlineQuantityId(null);
+    setInlineQuantityValue('');
+  };
 
   const getMatchingSuggestions = () => {
     if (!inputValue.trim() || !showSuggestions) return []
@@ -91,7 +112,7 @@ export default function SingleCategoryView({
                     onSubmit={(e) => {
                       e.preventDefault()
                       if (editingText.trim()) {
-                        onEditItem(item.id, editingText, editingQuantity)
+                        onEditItem(item.id, editingText)
                       }
                       setEditingItemId(null)
                     }}
@@ -103,12 +124,7 @@ export default function SingleCategoryView({
                       autoFocus
                       className="edit-input"
                     />
-                    <input
-                      type="number"
-                      value={editingQuantity}
-                      onChange={(e) => setEditingQuantity(parseInt(e.target.value))}
-                          className="edit-quantity-input"
-                    />
+
                     <button type="submit" className="edit-save-btn">✓</button>
                     <button
                       type="button"
@@ -120,17 +136,47 @@ export default function SingleCategoryView({
                   </form>
                 ) : (
                   <>
-                    <span 
+                    <span
                       className="item-text"
                       onClick={() => onToggleItem(item.id)}
                     >
-                      {item.text} {item.quantity && `(x${item.quantity})`}
+                        {
+                          editingInlineQuantityId === item.id ? (
+                            <input
+                              ref={inlineQuantityInputRef}
+                              className="item-quantity-inline-input"
+                              value={inlineQuantityValue}
+                              onChange={(e) => setInlineQuantityValue(e.target.value)}
+                              onBlur={() => handleInlineQuantitySubmit(item.id, item.text)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleInlineQuantitySubmit(item.id, item.text);
+                                } else if (e.key === 'Escape') {
+                                  setEditingInlineQuantityId(null);
+                                  setInlineQuantityValue('');
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()} // Prevent toggling 'done'
+                            />
+                          ) : (
+                            <span
+                              className={item.quantity ? "item-quantity" : "item-quantity-placeholder"}
+                              onClick={(e) => {
+                                e.stopPropagation(); // prevent toggling 'done'
+                                setEditingInlineQuantityId(item.id);
+                                setInlineQuantityValue(item.quantity?.toString() || '');
+                              }}
+                            >
+                              {item.quantity || '#'}
+                            </span>
+                          )
+                        }
+                      {item.text}
                     </span>
                     <ItemMenu
                       onEdit={() => {
                         setEditingItemId(item.id)
                         setEditingText(item.text)
-                        setEditingQuantity(item.quantity)
                       }}
                       onChangeCategory={(categoryId) => {
                         onChangeCategory(item.id, categoryId)
@@ -192,3 +238,4 @@ export default function SingleCategoryView({
     </div>
   )
 }
+

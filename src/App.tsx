@@ -190,11 +190,12 @@ const App = () => {
     const capitalizedText = newText.trim().charAt(0).toUpperCase() + newText.trim().slice(1);
     const itemText = addEmojiToItem(capitalizedText)
     const newItemRef = doc(collection(db, "items"));
+    const resolvedQuantity = quantity ?? newQuantity
     const newItem = {
       text: itemText,
       categoryId,
       done: false,
-      ...(newQuantity && { quantity: newQuantity }),
+      ...(resolvedQuantity && { quantity: resolvedQuantity }),
     };
     await setDoc(newItemRef, newItem);
     
@@ -260,10 +261,10 @@ const App = () => {
     }
   }
 
-  const editItem = async (itemId: string, newText: string, newQuantity?: number) => {
-    const { text, quantity } = parseItemText(newText);
-    const capitalizedText = text.trim().charAt(0).toUpperCase() + text.trim().slice(1);
-    const itemText = addEmojiToItem(capitalizedText)
+  const editItem = async (itemId: string, newText: string, quantity?: number) => {
+    const capitalizedText = newText.trim().charAt(0).toUpperCase() + newText.trim().slice(1);
+    const { text: trimmedText } = parseItemText(capitalizedText); // No need to parse quantity from text here
+    const itemText = addEmojiToItem(trimmedText)
     const itemRef = doc(db, "items", itemId);
     
     // Find the old item to get its text for suggestion update
@@ -272,7 +273,7 @@ const App = () => {
 
     const updatedItem = {
       text: itemText,
-      ...(quantity && { quantity: quantity }),
+      ...(quantity !== undefined && { quantity: quantity }),
     };
     await setDoc(itemRef, updatedItem, { merge: true });
 
@@ -357,6 +358,19 @@ const App = () => {
   const deleteHeldItem = async (itemId: string) => {
     const heldItemRef = doc(db, "heldItems", itemId);
     await deleteDoc(heldItemRef);
+  }
+
+  const editHeldItem = async (itemId: string, newText: string, newQuantity?: number) => {
+    const { text } = parseItemText(newText);
+    const capitalizedText = text.trim().charAt(0).toUpperCase() + text.trim().slice(1);
+    const itemText = addEmojiToItem(capitalizedText)
+    const itemRef = doc(db, "heldItems", itemId);
+    
+    const updatedItem = {
+      text: itemText,
+      ...(newQuantity !== undefined && { quantity: newQuantity }),
+    };
+    await setDoc(itemRef, updatedItem, { merge: true });
   }
 
   const editSuggestion = async (oldKey: string, newText: string, categoryId: string) => {
@@ -559,6 +573,7 @@ const App = () => {
                 categories={categories}
                 onUnhold={unholdItem}
                 onDelete={deleteHeldItem}
+                onEditItem={editHeldItem}
               />
             </div>
             <div style={{ display: currentView === 'single-category' ? 'block' : 'none', gridArea: '1 / 1' }}>

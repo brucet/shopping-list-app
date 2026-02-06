@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import ItemMenu from './ItemMenu'
 import type { Category, Item } from '../types'
 import '../styles/AllItemsView.css'
+import '../styles/Item.css'
 
 interface AllItemsViewProps {
   categories: Category[]
@@ -16,7 +17,27 @@ interface AllItemsViewProps {
 const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditItem, onChangeCategory, onHoldItem }: AllItemsViewProps) => {
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [editingText, setEditingText] = useState('')
-  const [editingQuantity, setEditingQuantity] = useState<number | undefined>(undefined)
+
+  const [editingInlineQuantityId, setEditingInlineQuantityId] = useState<string | null>(null);
+  const [inlineQuantityValue, setInlineQuantityValue] = useState<string>('');
+  const inlineQuantityInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingInlineQuantityId && inlineQuantityInputRef.current) {
+      inlineQuantityInputRef.current.focus();
+    }
+  }, [editingInlineQuantityId]);
+
+  const handleInlineQuantitySubmit = (itemId: string, currentText: string) => {
+    const newQuantity = parseInt(inlineQuantityValue, 10);
+    if (!isNaN(newQuantity) && newQuantity > 0) {
+      onEditItem(itemId, currentText, newQuantity);
+    } else {
+      onEditItem(itemId, currentText, undefined); // Remove quantity if invalid or empty
+    }
+    setEditingInlineQuantityId(null);
+    setInlineQuantityValue('');
+  };
 
   const allItems = items;
 
@@ -56,7 +77,7 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
                     onSubmit={(e) => {
                       e.preventDefault()
                       if (editingText.trim()) {
-                        onEditItem(item.id, editingText, editingQuantity)
+                        onEditItem(item.id, editingText)
                       }
                       setEditingItemId(null)
                     }}
@@ -68,12 +89,7 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
                       autoFocus
                       className="edit-input"
                     />
-                    <input
-                      type="number"
-                      value={editingQuantity}
-                      onChange={(e) => setEditingQuantity(parseInt(e.target.value))}
-                      className="edit-quantity-input"
-                    />
+
                     <button type="submit" className="edit-save-btn">✓</button>
                     <button
                       type="button"
@@ -89,7 +105,40 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
                       className="item-content"
                       onClick={() => onToggleItem(item.id)}
                     >
-                      <span className="item-text">{item.text} {item.quantity && `(x${item.quantity})`}</span>
+                      <span className="item-text">
+                        {
+                          editingInlineQuantityId === item.id ? (
+                            <input
+                              ref={inlineQuantityInputRef}
+                              className="item-quantity-inline-input"
+                              value={inlineQuantityValue}
+                              onChange={(e) => setInlineQuantityValue(e.target.value)}
+                              onBlur={() => handleInlineQuantitySubmit(item.id, item.text)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleInlineQuantitySubmit(item.id, item.text);
+                                } else if (e.key === 'Escape') {
+                                  setEditingInlineQuantityId(null);
+                                  setInlineQuantityValue('');
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()} // Prevent toggling 'done'
+                            />
+                          ) : (
+                            <span
+                              className={item.quantity ? "item-quantity" : "item-quantity-placeholder"}
+                              onClick={(e) => {
+                                e.stopPropagation(); // prevent toggling 'done'
+                                setEditingInlineQuantityId(item.id);
+                                setInlineQuantityValue(item.quantity?.toString() || '');
+                              }}
+                            >
+                              {item.quantity || '#'}
+                            </span>
+                          )
+                        }
+                        {item.text}
+                      </span>
                       <span 
                         className="item-category-badge"
                         style={{ backgroundColor: getCategoryColor(item.categoryId) }}
@@ -101,7 +150,6 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
                       onEdit={() => {
                         setEditingItemId(item.id)
                         setEditingText(item.text)
-                        setEditingQuantity(item.quantity)
                       }}
                       onChangeCategory={(categoryId) => {
                         onChangeCategory(item.id, categoryId)
