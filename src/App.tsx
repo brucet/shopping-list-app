@@ -40,7 +40,7 @@ const App = () => {
       setCategories(cats);
     });
 
-    const unsubscribeItems = onSnapshot(collection(db, "items"), (snapshot) => {
+    const unsubscribeItems = onSnapshot(query(collection(db, "items"), orderBy("createdAt")), (snapshot) => {
       const its = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Item));
       setItems(its);
     });
@@ -195,6 +195,7 @@ const App = () => {
       text: itemText,
       categoryId,
       done: false,
+      createdAt: Date.now(),
       ...(resolvedQuantity && { quantity: resolvedQuantity }),
     };
     await setDoc(newItemRef, newItem);
@@ -350,7 +351,7 @@ const App = () => {
     const itemRef = doc(db, "items", itemId);
 
     batch.delete(heldItemRef);
-    batch.set(itemRef, { text: heldItem.text, categoryId, done: false });
+    batch.set(itemRef, { text: heldItem.text, categoryId, done: false, createdAt: heldItem.createdAt || Date.now() });
 
     await batch.commit();
   }
@@ -428,9 +429,9 @@ const App = () => {
       batch.set(categoryRef, category);
     });
     Object.entries(SAMPLE_ITEMS).forEach(([categoryId, items]) => {
-      items.forEach(item => {
+      items.forEach((item, index) => {
         const itemRef = doc(db, "items", item.id);
-        batch.set(itemRef, { ...item, categoryId });
+        batch.set(itemRef, { ...item, categoryId, createdAt: Date.now() + index });
       });
     });
 

@@ -7,6 +7,7 @@ export interface Category {
 
 export interface Item {
   id: string;
+  createdAt: number;
   text: string;
   done?: boolean;
   categoryId: string;
@@ -29,6 +30,7 @@ export interface HeldItem {
   text: string;
   categoryId: string;
   quantity?: number;
+  createdAt: number;
 }
 
 export type ViewType = 'categories' | 'all-items' | 'suggestions' | 'held-items' | 'single-category' | 'history';

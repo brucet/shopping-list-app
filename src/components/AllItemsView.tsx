@@ -34,7 +34,7 @@ const AllItemsView = ({ categories, items, onRemoveItem, onToggleItem, onEditIte
             .sort((a, b) => {
               if (a.done && !b.done) return 1
               if (!a.done && b.done) return -1
-              return 0
+              return (a.createdAt || 0) - (b.createdAt || 0)
             })
             .map((item) => (
               <LineItem
