@@ -41,12 +41,6 @@ const EMOJI_MAP: Record<string, string> = {
 export function findEmojiForItem(itemText: string): string | null {
   const lowerText = itemText.toLowerCase().trim()
   
-  // Check if item already starts with an emoji
-  const emojiRegex = /^[\u{1F300}-\u{1F9FF}]/u
-  if (emojiRegex.test(itemText)) {
-    return null
-  }
-  
   // Check for exact matches
   if (EMOJI_MAP[lowerText]) {
     return EMOJI_MAP[lowerText]
@@ -64,5 +58,8 @@ export function findEmojiForItem(itemText: string): string | null {
 
 export function addEmojiToItem(itemText: string): string {
   const emoji = findEmojiForItem(itemText)
-  return emoji ? `${emoji} ${itemText}` : itemText
+  if (emoji && !itemText.includes(emoji)) {
+    return `${emoji} ${itemText}`
+  }
+  return itemText
 }
