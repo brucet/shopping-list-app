@@ -1,41 +1,44 @@
 // Map of keywords to emojis for shopping list items
 const EMOJI_MAP: Record<string, string> = {
   // Fruits
-  'apple': '🍎', 'banana': '🍌', 'orange': '🍊', 'lemon': '🍋', 'lime': '🍋',
-  'grape': '🍇', 'strawberry': '🍓', 'strawberries': '🍓', 'watermelon': '🍉',
-  'melon': '🍈', 'peach': '🍑', 'pear': '🍐', 'cherry': '🍒', 'cherries': '🍒',
-  'kiwi': '🥝', 'mango': '🥭', 'pineapple': '🍍', 'coconut': '🥥', 'avocado': '🥑',
+  'apple': '🍎', 'apples': '🍎', 'banana': '🍌', 'bananas': '🍌', 'orange': '🍊', 'oranges': '🍊', 
+  'lemon': '🍋', 'lemons': '🍋', 'lime': '🍋', 'limes': '🍋', 'grape': '🍇', 'grapes': '🍇', 
+  'strawberry': '🍓', 'strawberries': '🍓', 'watermelon': '🍉', 'watermelons': '🍉',
+  'melon': '🍈', 'melons': '🍈', 'peach': '🍑', 'peaches': '🍑', 'pear': '🍐', 'pears': '🍐', 
+  'cherry': '🍒', 'cherries': '🍒', 'kiwi': '🥝', 'kiwis': '🥝', 'mango': '🥭', 'mangos': '🥭', 
+  'pineapple': '🍍', 'pineapples': '🍍', 'coconut': '🥥', 'coconuts': '🥥', 'avocado': '🥑', 'avocados': '🥑',
   
   // Vegetables
-  'tomato': '🍅', 'carrot': '🥕', 'corn': '🌽', 'pepper': '🫑', 'broccoli': '🥦',
-  'lettuce': '🥬', 'cucumber': '🥒', 'potato': '🥔', 'onion': '🧅', 'garlic': '🧄',
-  'mushroom': '🍄', 'eggplant': '🍆',
+  'tomato': '🍅', 'tomatoes': '🍅', 'carrot': '🥕', 'carrots': '🥕', 'corn': '🌽', 'pepper': '🫑', 'peppers': '🫑', 
+  'broccoli': '🥦', 'lettuce': '🥬', 'cucumber': '🥒', 'cucumbers': '🥒', 'potato': '🥔', 'potatoes': '🥔', 
+  'onion': '🧅', 'onions': '🧅', 'garlic': '🧄', 'mushroom': '🍄', 'mushrooms': '🍄', 'eggplant': '🍆', 'eggplants': '🍆',
   
   // Dairy
   'milk': '🥛', 'cheese': '🧀', 'butter': '🧈', 'egg': '🥚', 'eggs': '🥚',
   
   // Meat & Protein
-  'chicken': '🍗', 'bacon': '🥓', 'steak': '🥩', 'meat': '🥩', 'fish': '🐟', 'shrimp': '🍤',
+  'chicken': '🍗', 'chickens': '🍗', 'bacon': '🥓', 'steak': '🥩', 'steaks': '🥩', 'meat': '🥩', 'fish': '🐟', 'shrimp': '🍤',
   
   // Bakery
-  'bread': '🍞', 'bagel': '🥯', 'croissant': '🥐', 'baguette': '🥖',
+  'bread': '🍞', 'bagel': '🥯', 'bagels': '🥯', 'croissant': '🥐', 'croissants': '🥐', 'baguette': '🥖', 'baguettes': '🥖',
   
   // Beverages
-  'coffee': '☕', 'tea': '🍵', 'juice': '🧃', 'soda': '🥤', 'water': '💧', 'wine': '🍷', 'beer': '🍺',
+  'coffee': '☕', 'tea': '🍵', 'juice': '🧃', 'soda': '🥤', 'sodas': '🥤', 'water': '💧', 'wine': '🍷', 'wines': '🍷', 'beer': '🍺', 'beers': '🍺',
   
   // Snacks & Sweets
-  'cookie': '🍪', 'cookies': '🍪', 'chocolate': '🍫', 'candy': '🍬', 'ice cream': '🍦',
-  'donut': '🍩', 'cake': '🍰', 'pie': '🥧', 'popcorn': '🍿', 'chips': '🥨',
+  'cookie': '🍪', 'cookies': '🍪', 'chocolate': '🍫', 'candy': '🍬', 'candies': '🍬', 'ice cream': '🍦',
+  'donut': '🍩', 'donuts': '🍩', 'cake': '🍰', 'cakes': '🍰', 'pie': '🥧', 'pies': '🥧', 'popcorn': '🍿', 'chips': '🥨',
   
   // Condiments
   'ketchup': '🍅', 'mustard': '🌭', 'mayo': '🥚', 'mayonnaise': '🥚', 'honey': '🍯', 'jam': '🍓',
   
   // Pantry
-  'rice': '🍚', 'pasta': '🍝', 'cereal': '🥣', 'soup': '🥫', 'beans': '🫘',
+  'rice': '🍚', 'pasta': '🍝', 'cereal': '🥣', 'soup': '🥫', 'soups': '🥫', 'beans': '🫘',
   
   // Other
-  'pizza': '🍕', 'burger': '🍔', 'taco': '🌮', 'burrito': '🌯', 'sandwich': '🥪',
-  'salad': '🥗', 'peanut': '🥜', 'peanuts': '🥜', 'salt': '🧂', 'oil': '🫒',
+  'pizza': '🍕', 'pizzas': '🍕', 'burger': '🍔', 'burgers': '🍔', 'taco': '🌮', 'tacos': '🌮', 
+  'burrito': '🌯', 'burritos': '🌯', 'sandwich': '🥪', 'sandwiches': '🥪', 'salad': '🥗', 'salads': '🥗',
+  'peanut': '🥜', 'peanuts': '🥜', 'salt': '🧂', 'oil': '🫒',
 }
 
 export function findEmojiForItem(itemText: string): string | null {
@@ -46,10 +49,13 @@ export function findEmojiForItem(itemText: string): string | null {
     return EMOJI_MAP[lowerText]
   }
   
+  const keywords = Object.keys(EMOJI_MAP).sort((a, b) => b.length - a.length);
+  
   // Check if any keyword is contained in the text
-  for (const [keyword, emoji] of Object.entries(EMOJI_MAP)) {
-    if (lowerText.includes(keyword)) {
-      return emoji
+  for (const keyword of keywords) {
+    const regex = new RegExp(`\b${keyword}\b`, 'i');
+    if (regex.test(lowerText)) {
+      return EMOJI_MAP[keyword];
     }
   }
   

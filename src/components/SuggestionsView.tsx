@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import type { Category, Item, SuggestionsMap } from '../types'
 import '../styles/SuggestionsView.css'
 
@@ -52,6 +52,8 @@ export default function SuggestionsView({ suggestions, categories, items, onAddS
   const [editingKey, setEditingKey] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
   const [editCategoryId, setEditCategoryId] = useState('')
+  const viewRef = useRef<HTMLDivElement>(null);
+  const [visibleCount, setVisibleCount] = useState(20);
 
   const getSuggestionScore = (suggestion: { frequency: number; lastAdded: number }) => {
     const now = Date.now()
@@ -68,7 +70,7 @@ export default function SuggestionsView({ suggestions, categories, items, onAddS
     itemsInList.add(item.text.toLowerCase())
   })
 
-  const sortedSuggestions = Object.entries(suggestions)
+  const allSuggestions = Object.entries(suggestions)
     .map(([key, data]) => ({
       key,
       ...data,
@@ -76,7 +78,24 @@ export default function SuggestionsView({ suggestions, categories, items, onAddS
     }))
     .filter(suggestion => !itemsInList.has(suggestion.key))
     .sort((a, b) => b.score - a.score)
-    .slice(0, 50)
+
+  const sortedSuggestions = allSuggestions.slice(0, visibleCount);
+
+  useEffect(() => {
+    const scrollContainer = viewRef.current?.closest('.app-main');
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+      if (scrollTop + clientHeight < scrollHeight - 100) {
+        return;
+      }
+      setVisibleCount(prevCount => Math.min(prevCount + 20, allSuggestions.length));
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, [allSuggestions.length]);
 
   const getCategoryName = (categoryId: string) => {
     const category = categories.find(c => c.id === categoryId)
@@ -105,7 +124,7 @@ export default function SuggestionsView({ suggestions, categories, items, onAddS
   }
 
   return (
-    <div className="suggestions-view">
+    <div className="suggestions-view" ref={viewRef}>
       <div className="suggestions-header">
         <h2>Suggestions</h2>
         <span className="suggestions-count">{sortedSuggestions.length} items</span>
