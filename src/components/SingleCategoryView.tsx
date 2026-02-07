@@ -103,8 +103,7 @@ export default function SingleCategoryView({
             className="add-item-input"
           />
           <input
-            type="number"
-            placeholder="Qty"
+            placeholder="#"
             value={quantity}
             onChange={(e) => setQuantity(parseInt(e.target.value))}
             className="add-quantity-input"

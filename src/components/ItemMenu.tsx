@@ -3,12 +3,12 @@ import type { Category } from '../types'
 import '../styles/ItemMenu.css'
 
 interface ItemMenuProps {
-  onEdit: () => void
-  onChangeCategory: (categoryId: string) => void
-  onDelete: () => void
-  onHold: () => void
-  categories: Category[]
-  currentCategoryId: string
+  onEdit: () => void;
+  onChangeCategory: (categoryId: string) => void;
+  onDelete: () => void;
+  onHold: () => void;
+  categories: Category[];
+  currentCategoryId: string;
 }
 
 const ItemMenu = ({ onEdit, onChangeCategory, onDelete, onHold, categories, currentCategoryId }: ItemMenuProps) => {
