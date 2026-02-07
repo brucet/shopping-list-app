@@ -1,24 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-  DndContext,
   closestCenter,
+  DndContext,
+  DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
   useSortable,
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import {CSS} from '@dnd-kit/utilities';
 import debounce from 'lodash.debounce';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, query, orderBy, getDoc, getDocs, serverTimestamp } from 'firebase/firestore'
-import { db } from './firebase'
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  writeBatch
+} from 'firebase/firestore'
+import {db} from './firebase'
 import BottomNav from './components/BottomNav'
 import HeaderMenu from './components/HeaderMenu'
 import CategoriesView from './components/CategoriesView'
@@ -27,9 +39,9 @@ import SuggestionsView from './components/SuggestionsView'
 import HeldItemsView from './components/HeldItemsView'
 import SingleCategoryView from './components/SingleCategoryView'
 import HistoryView from './components/HistoryView';
-import { addEmojiToItem } from './utils/emojiMatcher'
-import { parseItemText } from './utils/itemParser';
-import type { Category, Item, SuggestionsMap, HeldItem, ViewType } from './types'
+import {addEmojiToItem} from './utils/emojiMatcher'
+import {parseItemText} from './utils/itemParser';
+import type {Category, HeldItem, Item, SuggestionsMap, ViewType} from './types'
 import './App.css'
 
 const PRESET_COLORS = [
@@ -37,28 +49,36 @@ const PRESET_COLORS = [
   '#FCE4EC', '#F1F8E9', '#E3F2FD',
 ]
 
-function SortableCategoryItem({ id, category, items, currentView, selectedCategoryId, handleCategoryClick }) {
+function SortableCategoryItem(props: {
+  id: string,
+  category: Category,
+  items: Item[],
+  currentView: ViewType,
+  selectedCategoryId: string | null,
+  handleCategoryClick: (categoryId: string) => void
+}) {
+  let {id, category, items, currentView, selectedCategoryId, handleCategoryClick} = props;
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id });
+  } = useSortable({id});
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
-  
+
   const remainingCount = items.filter(item => item.categoryId === category.id && !item.done).length
   const isActive = currentView === 'single-category' && selectedCategoryId === category.id
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
+      <div ref={setNodeRef} style={style} {...attributes}>
         <button
-          className={`sidebar-item ${isActive ? 'active' : ''}`}
-          onClick={() => handleCategoryClick(category.id)}
+            className={`sidebar-item ${isActive ? 'active' : ''}`}
+            onClick={() => handleCategoryClick(category.id)}
         >
           <div className="sidebar-item-left">
             <div className="sidebar-drag-handle" {...listeners}>
@@ -68,7 +88,7 @@ function SortableCategoryItem({ id, category, items, currentView, selectedCatego
           </div>
           <span className="sidebar-item-count">{remainingCount}</span>
         </button>
-    </div>
+      </div>
   );
 }
 
