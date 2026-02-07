@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Droppable, Draggable } from 'react-beautiful-dnd'
 import type { Category, Item } from '../types'
 import '../styles/CategoriesView.css'
 
@@ -87,59 +86,50 @@ export default function CategoriesView({ categories, items, onCategoryClick, onU
         </label>
       </div>
 
-      <Droppable droppableId="categories-view" type="CATEGORY">
-        {(provided, snapshot) => (
-          <div className={`categories-grid ${snapshot.isDraggingOver ? 'dragging-over' : ''}`} ref={provided.innerRef} {...provided.droppableProps}>
-            {categories.map((category, index) => {
-              const categoryItems = items.filter(item => item.categoryId === category.id)
-              const itemCount = categoryItems.length
-              const remainingCount = categoryItems.filter(item => !item.done).length
-              const isEditing = editingId === category.id
+      <div className="categories-grid">
+        {categories.map((category) => {
+          const categoryItems = items.filter(item => item.categoryId === category.id)
+          const itemCount = categoryItems.length
+          const remainingCount = categoryItems.filter(item => !item.done).length
+          const isEditing = editingId === category.id
 
-              if (hideEmpty && remainingCount === 0) return null
+          if (hideEmpty && remainingCount === 0) return null
 
-              return (
-                <Draggable key={category.id} draggableId={category.id} index={index}>
-                  {(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.draggableProps} className={`category-card ${snapshot.isDragging ? 'dragging' : ''} ${isEditing ? 'editing' : ''}`} style={{ ...provided.draggableProps.style, backgroundColor: isEditing ? '#f0f7ff' : category.color }}>
-                      {isEditing ? (
-                        <form className="category-edit-form" onSubmit={saveEdit} onClick={(e) => e.stopPropagation()}>
-                          <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="category-input" autoFocus />
-                          <div className="color-picker-inline">
-                            {presetColors.map((color) => (
-                              <button key={color} type="button" className={`color-option ${editColor === color ? 'selected' : ''}`} style={{ backgroundColor: color }} onClick={() => setEditColor(color)} />
-                            ))}
-                          </div>
-                          <div className="edit-actions">
-                            <button type="submit" className="save-btn">✓</button>
-                            <button type="button" className="cancel-btn" onClick={cancelEdit}>✕</button>
-                          </div>
-                        </form>
+          return (
+            <div key={category.id} className={`category-card ${isEditing ? 'editing' : ''}`} style={{ backgroundColor: isEditing ? '#f0f7ff' : category.color }}>
+              {isEditing ? (
+                <form className="category-edit-form" onSubmit={saveEdit} onClick={(e) => e.stopPropagation()}>
+                  <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="category-input" autoFocus />
+                  <div className="color-picker-inline">
+                    {presetColors.map((color) => (
+                      <button key={color} type="button" className={`color-option ${editColor === color ? 'selected' : ''}`} style={{ backgroundColor: color }} onClick={() => setEditColor(color)} />
+                    ))}
+                  </div>
+                  <div className="edit-actions">
+                    <button type="submit" className="save-btn">✓</button>
+                    <button type="button" className="cancel-btn" onClick={cancelEdit}>✕</button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <div className="category-card-drag-handle"><span className="drag-indicator">⋮⋮</span></div>
+                  <div className="category-card-content" onClick={() => onCategoryClick(category.id)}>
+                    <div className="category-title-row">
+                      <h3>{category.name}</h3>
+                      {remainingCount > 0 ? (
+                        <span className="count-lozenge">{remainingCount}</span>
                       ) : (
-                        <>
-                          <div className="category-card-drag-handle" {...provided.dragHandleProps}><span className="drag-indicator">⋮⋮</span></div>
-                          <div className="category-card-content" onClick={() => onCategoryClick(category.id)}>
-                            <div className="category-title-row">
-                              <h3>{category.name}</h3>
-                              {remainingCount > 0 ? (
-                                <span className="count-lozenge">{remainingCount}</span>
-                              ) : (
-                                <span className="stat-text empty">Empty</span>
-                              )}
-                              <CategoryCardMenu onEdit={() => startEdit(category)} onDelete={() => handleDelete(category.id)} itemCount={itemCount} />
-                            </div>
-                          </div>
-                        </>
+                        <span className="stat-text empty">Empty</span>
                       )}
+                      <CategoryCardMenu onEdit={() => startEdit(category)} onDelete={() => handleDelete(category.id)} itemCount={itemCount} />
                     </div>
-                  )}
-                </Draggable>
-              )
-            })}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
+                  </div>
+                </>
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

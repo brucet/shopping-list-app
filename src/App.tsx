@@ -1,5 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { DragDropContext, DropResult, Droppable, Draggable } from 'react-beautiful-dnd';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import debounce from 'lodash.debounce';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, query, orderBy, getDoc, getDocs, serverTimestamp } from 'firebase/firestore'
 import { db } from './firebase'
@@ -21,6 +37,42 @@ const PRESET_COLORS = [
   '#FCE4EC', '#F1F8E9', '#E3F2FD',
 ]
 
+function SortableCategoryItem({ id, category, items, currentView, selectedCategoryId, handleCategoryClick }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  
+  const remainingCount = items.filter(item => item.categoryId === category.id && !item.done).length
+  const isActive = currentView === 'single-category' && selectedCategoryId === category.id
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+        <button
+          className={`sidebar-item ${isActive ? 'active' : ''}`}
+          onClick={() => handleCategoryClick(category.id)}
+        >
+          <div className="sidebar-item-left">
+            <div className="sidebar-drag-handle" {...listeners}>
+              <span className="drag-indicator">⋮⋮</span>
+            </div>
+            <span className="sidebar-item-name">{category.name}</span>
+          </div>
+          <span className="sidebar-item-count">{remainingCount}</span>
+        </button>
+    </div>
+  );
+}
+
+
 const App = () => {
   const [categories, setCategories] = useState<Category[]>([])
   const [items, setItems] = useState<Item[]>([])
@@ -33,6 +85,13 @@ const App = () => {
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryColor, setNewCategoryColor] = useState(PRESET_COLORS[0])
   
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   // Firestore listeners
   useEffect(() => {
     const unsubscribeCategories = onSnapshot(query(collection(db, "categories"), orderBy("order")), (snapshot) => {
@@ -161,25 +220,25 @@ const App = () => {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [categories])
 
-  const handleDragEnd = (result: DropResult) => {
-    const { source, destination, type } = result;
+  const handleDragEnd = (event: DragEndEvent) => {
+    const {active, over} = event;
+    
+    if (over && active.id !== over.id) {
+      setCategories((categories) => {
+        const oldIndex = categories.findIndex(c => c.id === active.id);
+        const newIndex = categories.findIndex(c => c.id === over.id);
+        
+        const newCategories = arrayMove(categories, oldIndex, newIndex);
 
-    if (!destination) {
-      return;
-    }
+        const batch = writeBatch(db);
+        newCategories.forEach((category, index) => {
+          const categoryRef = doc(db, "categories", category.id);
+          batch.update(categoryRef, { order: index });
+        });
+        batch.commit();
 
-    if (type === 'CATEGORY') {
-      const newCategories = Array.from(categories);
-      const [removed] = newCategories.splice(source.index, 1);
-      newCategories.splice(destination.index, 0, removed);
-      setCategories(newCategories);
-
-      const batch = writeBatch(db);
-      newCategories.forEach((category, index) => {
-        const categoryRef = doc(db, "categories", category.id);
-        batch.update(categoryRef, { order: index });
+        return newCategories;
       });
-      batch.commit();
     }
   };
 
@@ -464,76 +523,68 @@ const App = () => {
           onSetupSampleData={setupSampleData} 
         />
       </header>
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <DndContext 
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
         <div className="app-main">
           {/* Desktop Sidebar */}
           <aside className="sidebar">
-            <Droppable droppableId="sidebar" type="CATEGORY">
-              {(provided) => (
-                <nav className="sidebar-nav" ref={provided.innerRef} {...provided.droppableProps}>
-                  {categories.map((category, index) => {
-                    const remainingCount = items.filter(item => item.categoryId === category.id && !item.done).length
-                    const isActive = currentView === 'single-category' && selectedCategoryId === category.id
-                    
-                    return (
-                      <Draggable key={category.id} draggableId={category.id} index={index}>
-                        {(provided) => (
-                          <button
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={`sidebar-item ${isActive ? 'active' : ''}`}
-                            onClick={() => handleCategoryClick(category.id)}
-                          >
-                            <div className="sidebar-drag-handle" {...provided.dragHandleProps}>
-                              <span className="drag-indicator">⋮⋮</span>
-                            </div>
-                            <span className="sidebar-item-name">{category.name}</span>
-                            <span className="sidebar-item-count">{remainingCount}</span>
-                          </button>
-                        )}
-                      </Draggable>
-                    )
-                  })}
-                  {provided.placeholder}
-                  
-                  {/* Inline Add Category form */}
-                  {showInlineAddCategoryForm ? (
-                    <form className="sidebar-add-category-form" onSubmit={handleInlineAddCategory}>
-                      <input
-                        type="text"
-                        placeholder="New category name"
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                        autoFocus
-                        className="sidebar-category-input"
-                      />
-                      <div className="sidebar-color-picker">
-                        {PRESET_COLORS.map((color) => (
-                          <button
-                            key={color}
-                            type="button"
-                            className={`sidebar-color-option ${newCategoryColor === color ? 'selected' : ''}`}
-                            style={{ backgroundColor: color }}
-                            onClick={() => setNewCategoryColor(color)}
-                          />
-                        ))}
-                      </div>
-                      <div className="sidebar-add-category-actions">
-                        <button type="submit" className="sidebar-save-btn">✓ Add</button>
-                        <button type="button" className="sidebar-cancel-btn" onClick={() => setShowInlineAddCategoryForm(false)}>✕ Cancel</button>
-                      </div>
-                    </form>
-                  ) : (
-                    <button
-                      className="sidebar-item add-category-toggle"
-                      onClick={() => setShowInlineAddCategoryForm(true)}
-                    >
-                      <span className="sidebar-item-name">➕ Add New Category</span>
-                    </button>
-                  )}
-                </nav>
-              )}
-            </Droppable>
+            <SortableContext 
+              items={categories.map(c => c.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <nav className="sidebar-nav">
+                {categories.map((category) => (
+                  <SortableCategoryItem 
+                    key={category.id} 
+                    id={category.id} 
+                    category={category} 
+                    items={items}
+                    currentView={currentView}
+                    selectedCategoryId={selectedCategoryId}
+                    handleCategoryClick={handleCategoryClick}
+                  />
+                ))}
+                
+                {/* Inline Add Category form */}
+                {showInlineAddCategoryForm ? (
+                  <form className="sidebar-add-category-form" onSubmit={handleInlineAddCategory}>
+                    <input
+                      type="text"
+                      placeholder="New category name"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      autoFocus
+                      className="sidebar-category-input"
+                    />
+                    <div className="sidebar-color-picker">
+                      {PRESET_COLORS.map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          className={`sidebar-color-option ${newCategoryColor === color ? 'selected' : ''}`}
+                          style={{ backgroundColor: color }}
+                          onClick={() => setNewCategoryColor(color)}
+                        />
+                      ))}
+                    </div>
+                    <div className="sidebar-add-category-actions">
+                      <button type="submit" className="sidebar-save-btn">✓ Add</button>
+                      <button type="button" className="sidebar-cancel-btn" onClick={() => setShowInlineAddCategoryForm(false)}>✕ Cancel</button>
+                    </div>
+                  </form>
+                ) : (
+                  <button
+                    className="sidebar-item add-category-toggle"
+                    onClick={() => setShowInlineAddCategoryForm(true)}
+                  >
+                    <span className="sidebar-item-name">➕ Add New Category</span>
+                  </button>
+                )}
+              </nav>
+            </SortableContext>
           </aside>
 
           <div style={{ flex: 1 }}>
@@ -599,7 +650,7 @@ const App = () => {
             </div>
           </div>
         </div>
-      </DragDropContext>
+      </DndContext>
 
       {/* Bottom Navigation */}
       <BottomNav activeView={currentView} onViewChange={handleViewChange} />

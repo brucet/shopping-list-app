@@ -91,20 +91,13 @@
   font-family: inherit;
   text-align: left;
   border-left: 3px solid transparent;
+  width: 100%;
 }
 
-.sidebar-item:hover {
-  background: rgba(102, 126, 234, 0.05);
-}
-
-.sidebar-item.active {
-  background: rgba(102, 126, 234, 0.1);
-  border-left-color: #667eea;
-  color: #667eea;
-  font-weight: 600;
-}
-
-.sidebar-item-name {
+.sidebar-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -119,6 +112,7 @@
   font-weight: 600;
   color: #666;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .sidebar-item.active .sidebar-item-count {
