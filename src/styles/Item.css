@@ -29,7 +29,6 @@
   padding: 14px;
   background: white;
   border-radius: 6px;
-  transition: all 0.2s ease;
   border: 1px solid #e0e0e0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   cursor: pointer;
@@ -72,7 +71,6 @@
   font-size: 15px;
   color: #333;
   word-break: break-word;
-  transition: color 0.2s ease;
 }
 
 .list-item:not(.done) .item-text {
@@ -97,7 +95,6 @@
   cursor: pointer;
   font-size: 18px;
   padding: 4px;
-  transition: color 0.2s ease;
   flex-shrink: 0;
 }
 
@@ -141,7 +138,6 @@
   cursor: pointer;
   font-size: 16px;
   font-weight: bold;
-  transition: all 0.2s ease;
   flex-shrink: 0;
 }
 

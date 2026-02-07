@@ -305,10 +305,26 @@ const App = () => {
   }
 
   const toggleItemDone = async (itemId: string) => {
-    const itemRef = doc(db, "items", itemId);
-    const itemDoc = await getDoc(itemRef);
-    if (itemDoc.exists()) {
-      await setDoc(itemRef, { done: !itemDoc.data().done }, { merge: true });
+    const originalItems = items;
+    const itemToToggle = items.find(item => item.id === itemId);
+    if (!itemToToggle) return;
+
+    // Optimistic UI update
+    setItems(prevItems =>
+      prevItems.map(item =>
+        item.id === itemId ? { ...item, done: !item.done } : item
+      )
+    );
+
+    // Firestore update
+    try {
+      const itemRef = doc(db, "items", itemId);
+      await setDoc(itemRef, { done: !itemToToggle.done }, { merge: true });
+    } catch (error) {
+      console.error("Error updating item: ", error);
+      // Revert the optimistic update on error
+      setItems(originalItems);
+      // Optionally, show an error message to the user
     }
   }
 
