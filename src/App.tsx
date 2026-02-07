@@ -264,7 +264,7 @@ const App = () => {
     }
   };
 
-  const addItem = async (categoryId: string, text: string, quantity?: number) => {
+  const addItem = async (categoryId: string, text: string, quantity?: string) => {
     const { text: newText, quantity: newQuantity } = parseItemText(text);
     if (!newText.trim()) return
 
@@ -359,7 +359,7 @@ const App = () => {
     }
   }
 
-  const editItem = async (itemId: string, newText: string, quantity?: number) => {
+  const editItem = async (itemId: string, newText: string, quantity?: string) => {
     const capitalizedText = newText.trim().charAt(0).toUpperCase() + newText.trim().slice(1);
     const { text: trimmedText } = parseItemText(capitalizedText); // No need to parse quantity from text here
     const itemText = addEmojiToItem(trimmedText)
@@ -458,7 +458,7 @@ const App = () => {
     await deleteDoc(heldItemRef);
   }
 
-  const editHeldItem = async (itemId: string, newText: string, newQuantity?: number) => {
+  const editHeldItem = async (itemId: string, newText: string, newQuantity?: string) => {
     const { text } = parseItemText(newText);
     const capitalizedText = text.trim().charAt(0).toUpperCase() + text.trim().slice(1);
     const itemText = addEmojiToItem(capitalizedText)

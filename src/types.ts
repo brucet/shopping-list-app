@@ -11,7 +11,7 @@ export interface Item {
   text: string;
   done?: boolean;
   categoryId: string;
-  quantity?: number;
+  quantity?: string;
 }
 
 export interface Suggestion {
@@ -29,7 +29,7 @@ export interface HeldItem {
   id: string;
   text: string;
   categoryId: string;
-  quantity?: number;
+  quantity?: string;
   createdAt: number;
 }
 

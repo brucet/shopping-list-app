@@ -8,7 +8,7 @@ interface AllItemsViewProps {
   items: Item[]
   onRemoveItem: (itemId: string) => void
   onToggleItem: (itemId: string) => void
-  onEditItem: (itemId: string, newText: string, newQuantity?: number) => void
+  onEditItem: (itemId: string, newText: string, newQuantity?: string) => void
   onChangeCategory: (itemId: string, toCategoryId: string) => void
   onHoldItem: (itemId: string) => void
 }

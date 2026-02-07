@@ -7,7 +7,7 @@ interface HeldItemsViewProps {
   categories: Category[]
   onUnhold: (itemId: string, categoryId: string) => void
   onDelete: (itemId: string) => void
-  onEditItem: (itemId: string, newText: string, newQuantity?: number) => void
+  onEditItem: (itemId: string, newText: string, newQuantity?: string) => void
 }
 
 const HeldItemsView = ({ heldItems, categories, onUnhold, onDelete, onEditItem }: HeldItemsViewProps) => {

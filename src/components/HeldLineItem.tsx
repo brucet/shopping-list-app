@@ -8,7 +8,7 @@ interface HeldLineItemProps {
   categories: Category[];
   onUnhold: (itemId: string, categoryId: string) => void;
   onDelete: (itemId: string) => void;
-  onEditItem: (itemId: string, newText: string, newQuantity?: number) => void;
+  onEditItem: (itemId: string, newText: string, newQuantity?: string) => void;
   className?: string; // Optional className for the root div
 }
 
@@ -26,12 +26,7 @@ const HeldLineItem = ({ item, categories, onUnhold, onDelete, onEditItem, classN
   }, [editingInlineQuantityId]);
 
   const handleInlineQuantitySubmit = (itemId: string, currentText: string) => {
-    const newQuantity = parseInt(inlineQuantityValue, 10);
-    if (!isNaN(newQuantity) && newQuantity > 0) {
-      onEditItem(itemId, currentText, newQuantity);
-    } else {
-      onEditItem(itemId, currentText, undefined); // Remove quantity if invalid or empty
-    }
+    onEditItem(itemId, currentText, inlineQuantityValue);
     setEditingInlineQuantityId(null);
     setInlineQuantityValue('');
   };
@@ -86,7 +81,6 @@ const HeldLineItem = ({ item, categories, onUnhold, onDelete, onEditItem, classN
               ) : (
                 editingInlineQuantityId === item.id ? (
                   <input
-                    type="number"
                     ref={inlineQuantityInputRef}
                     className="item-quantity-inline-input"
                     value={inlineQuantityValue}

@@ -9,10 +9,10 @@ interface SingleCategoryViewProps {
   categories: Category[]
   items: Item[]
   suggestions: SuggestionsMap
-  onAddItem: (categoryId: string, text: string, quantity?: number) => void
+  onAddItem: (categoryId: string, text: string, quantity?: string) => void
   onRemoveItem: (itemId: string) => void
   onToggleItem: (itemId: string) => void
-  onEditItem: (itemId: string, newText: string, newQuantity?: number) => void
+  onEditItem: (itemId: string, newText: string, newQuantity?: string) => void
   onChangeCategory: (itemId: string, toCategoryId: string) => void
   onHoldItem: (itemId: string) => void
   onBack: () => void
@@ -32,7 +32,7 @@ export default function SingleCategoryView({
   onBack,
 }: SingleCategoryViewProps) {
   const [inputValue, setInputValue] = useState('')
-  const [quantity, setQuantity] = useState<number | undefined>(undefined)
+  const [quantity, setQuantity] = useState<string | undefined>(undefined)
   const [showSuggestions, setShowSuggestions] = useState(false)
 
   const getMatchingSuggestions = () => {
@@ -105,7 +105,7 @@ export default function SingleCategoryView({
           <input
             placeholder="#"
             value={quantity}
-            onChange={(e) => setQuantity(parseInt(e.target.value))}
+            onChange={(e) => setQuantity(e.target.value)}
             className="add-quantity-input"
           />
           <button type="submit" className="add-item-btn">

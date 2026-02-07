@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import {useEffect, useRef, useState} from 'react'
 import ItemMenu from './ItemMenu'
-import type { Category, Item } from '../types'
+import type {Category, Item} from '../types'
 import '../styles/AllItemsView.css'
 import '../styles/Item.css'
 
@@ -9,7 +9,7 @@ interface LineItemProps {
   categories: Category[];
   onRemoveItem: (itemId: string) => void;
   onToggleItem: (itemId: string) => void;
-  onEditItem: (itemId: string, newText: string, newQuantity?: number) => void;
+  onEditItem: (itemId: string, newText: string, newQuantity?: string) => void;
   onChangeCategory: (itemId: string, toCategoryId: string) => void;
   onHoldItem: (itemId: string) => void;
   className?: string; // Add optional className prop
@@ -29,12 +29,7 @@ const LineItem = ({ item, categories, onRemoveItem, onToggleItem, onEditItem, on
   }, [editingInlineQuantityId]);
 
   const handleInlineQuantitySubmit = (itemId: string, currentText: string) => {
-    const newQuantity = parseInt(inlineQuantityValue, 10);
-    if (!isNaN(newQuantity) && newQuantity > 0) {
-      onEditItem(itemId, currentText, newQuantity);
-    } else {
-      onEditItem(itemId, currentText, undefined); // Remove quantity if invalid or empty
-    }
+    onEditItem(itemId, currentText, inlineQuantityValue);
     setEditingInlineQuantityId(null);
     setInlineQuantityValue('');
   };
