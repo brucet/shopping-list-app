@@ -104,6 +104,7 @@ const App = () => {
   const [showInlineAddCategoryForm, setShowInlineAddCategoryForm] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryColor, setNewCategoryColor] = useState(PRESET_COLORS[0])
+  const [isLoading, setIsLoading] = useState(true);
   
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -117,6 +118,7 @@ const App = () => {
     const unsubscribeCategories = onSnapshot(query(collection(db, "categories"), orderBy("order")), (snapshot) => {
       const cats = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Category));
       setCategories(cats);
+      setIsLoading(false);
     });
 
     const unsubscribeItems = onSnapshot(query(collection(db, "items"), orderBy("createdAt")), (snapshot) => {
@@ -567,123 +569,133 @@ const App = () => {
         <div className="app-main">
           {/* Desktop Sidebar */}
           <aside className="sidebar">
-            <SortableContext 
-              items={categories.map(c => c.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <nav className="sidebar-nav">
-                {categories.map((category) => (
-                  <SortableCategoryItem 
-                    key={category.id} 
-                    id={category.id} 
-                    category={category} 
-                    items={items}
-                    currentView={currentView}
-                    selectedCategoryId={selectedCategoryId}
-                    handleCategoryClick={handleCategoryClick}
-                  />
-                ))}
-                
-                {/* Inline Add Category form */}
-                {showInlineAddCategoryForm ? (
-                  <form className="sidebar-add-category-form" onSubmit={handleInlineAddCategory}>
-                    <input
-                      type="text"
-                      placeholder="New category name"
-                      value={newCategoryName}
-                      onChange={(e) => setNewCategoryName(e.target.value)}
-                      autoFocus
-                      className="sidebar-category-input"
+            {isLoading ? (
+              <div className="sidebar-loading">Loading...</div>
+            ) : (
+              <SortableContext 
+                items={categories.map(c => c.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <nav className="sidebar-nav">
+                  {categories.map((category) => (
+                    <SortableCategoryItem 
+                      key={category.id} 
+                      id={category.id} 
+                      category={category} 
+                      items={items}
+                      currentView={currentView}
+                      selectedCategoryId={selectedCategoryId}
+                      handleCategoryClick={handleCategoryClick}
                     />
-                    <div className="sidebar-color-picker">
-                      {PRESET_COLORS.map((color) => (
-                        <button
-                          key={color}
-                          type="button"
-                          className={`sidebar-color-option ${newCategoryColor === color ? 'selected' : ''}`}
-                          style={{ backgroundColor: color }}
-                          onClick={() => setNewCategoryColor(color)}
-                        />
-                      ))}
-                    </div>
-                    <div className="sidebar-add-category-actions">
-                      <button type="submit" className="sidebar-save-btn">✓ Add</button>
-                      <button type="button" className="sidebar-cancel-btn" onClick={() => setShowInlineAddCategoryForm(false)}>✕ Cancel</button>
-                    </div>
-                  </form>
-                ) : (
-                  <button
-                    className="sidebar-item add-category-toggle"
-                    onClick={() => setShowInlineAddCategoryForm(true)}
-                  >
-                    <span className="sidebar-item-name">➕ Add New Category</span>
-                  </button>
-                )}
-              </nav>
-            </SortableContext>
+                  ))}
+                  
+                  {/* Inline Add Category form */}
+                  {showInlineAddCategoryForm ? (
+                    <form className="sidebar-add-category-form" onSubmit={handleInlineAddCategory}>
+                      <input
+                        type="text"
+                        placeholder="New category name"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        autoFocus
+                        className="sidebar-category-input"
+                      />
+                      <div className="sidebar-color-picker">
+                        {PRESET_COLORS.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            className={`sidebar-color-option ${newCategoryColor === color ? 'selected' : ''}`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => setNewCategoryColor(color)}
+                          />
+                        ))}
+                      </div>
+                      <div className="sidebar-add-category-actions">
+                        <button type="submit" className="sidebar-save-btn">✓ Add</button>
+                        <button type="button" className="sidebar-cancel-btn" onClick={() => setShowInlineAddCategoryForm(false)}>✕ Cancel</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <button
+                      className="sidebar-item add-category-toggle"
+                      onClick={() => setShowInlineAddCategoryForm(true)}
+                    >
+                      <span className="sidebar-item-name">➕ Add New Category</span>
+                    </button>
+                  )}
+                </nav>
+              </SortableContext>
+            )}
           </aside>
 
           <div style={{ flex: 1 }}>
-            <div style={{ display: currentView === 'categories' ? 'block' : 'none', gridArea: '1 / 1' }}>
-              <CategoriesView
-                categories={categories}
-                items={items}
-                onCategoryClick={handleCategoryClick}
-                onUpdateCategory={updateCategory}
-                onDeleteCategory={deleteCategory}
-                presetColors={PRESET_COLORS}
-              />
-            </div>
-            <div style={{ display: currentView === 'all-items' ? 'block' : 'none', gridArea: '1 / 1' }}>
-              <AllItemsView
-                categories={categories}
-                items={items}
-                onRemoveItem={removeItem}
-                onToggleItem={toggleItemDone}
-                onEditItem={editItem}
-                onChangeCategory={changeItemCategory}
-                onHoldItem={holdItem}
-              />
-            </div>
-            <div style={{ display: currentView === 'suggestions' ? 'block' : 'none', gridArea: '1 / 1' }}>
-              <SuggestionsView
-                suggestions={suggestions}
-                categories={categories}
-                items={items}
-                onAddSuggestion={addItem}
-                onEditSuggestion={editSuggestion}
-                onDeleteSuggestion={deleteSuggestion}
-              />
-            </div>
-            <div style={{ display: currentView === 'held-items' ? 'block' : 'none', gridArea: '1 / 1' }}>
-              <HeldItemsView
-                heldItems={heldItems}
-                categories={categories}
-                onUnhold={unholdItem}
-                onDelete={deleteHeldItem}
-                onEditItem={editHeldItem}
-              />
-            </div>
-            <div style={{ display: currentView === 'single-category' ? 'block' : 'none', gridArea: '1 / 1' }}>
-              {selectedCategory && (
-                <SingleCategoryView
-                  category={selectedCategory}
-                  categories={categories}
-                  items={items.filter(item => item.categoryId === selectedCategoryId)}
-                  suggestions={suggestions}
-                  onAddItem={addItem}
-                  onRemoveItem={removeItem}
-                  onToggleItem={toggleItemDone}
-                  onEditItem={editItem}
-                  onChangeCategory={changeItemCategory}
-                  onHoldItem={holdItem}
-                  onBack={() => handleViewChange('categories')}
-                />
-              )}
-            </div>
-            <div style={{ display: currentView === 'history' ? 'block' : 'none', gridArea: '1 / 1' }}>
-              <HistoryView />
-            </div>
+            {isLoading ? (
+              <div className="main-loading">Loading...</div>
+            ) : (
+              <>
+                <div style={{ display: currentView === 'categories' ? 'block' : 'none', gridArea: '1 / 1' }}>
+                  <CategoriesView
+                    categories={categories}
+                    items={items}
+                    onCategoryClick={handleCategoryClick}
+                    onUpdateCategory={updateCategory}
+                    onDeleteCategory={deleteCategory}
+                    presetColors={PRESET_COLORS}
+                  />
+                </div>
+                <div style={{ display: currentView === 'all-items' ? 'block' : 'none', gridArea: '1 / 1' }}>
+                  <AllItemsView
+                    categories={categories}
+                    items={items}
+                    onRemoveItem={removeItem}
+                    onToggleItem={toggleItemDone}
+                    onEditItem={editItem}
+                    onChangeCategory={changeItemCategory}
+                    onHoldItem={holdItem}
+                  />
+                </div>
+                <div style={{ display: currentView === 'suggestions' ? 'block' : 'none', gridArea: '1 / 1' }}>
+                  <SuggestionsView
+                    suggestions={suggestions}
+                    categories={categories}
+                    items={items}
+                    onAddSuggestion={addItem}
+                    onEditSuggestion={editSuggestion}
+                    onDeleteSuggestion={deleteSuggestion}
+                  />
+                </div>
+                <div style={{ display: currentView === 'held-items' ? 'block' : 'none', gridArea: '1 / 1' }}>
+                  <HeldItemsView
+                    heldItems={heldItems}
+                    categories={categories}
+                    onUnhold={unholdItem}
+                    onDelete={deleteHeldItem}
+                    onEditItem={editHeldItem}
+                  />
+                </div>
+                <div style={{ display: currentView === 'single-category' ? 'block' : 'none', gridArea: '1 / 1' }}>
+                  {selectedCategory && (
+                    <SingleCategoryView
+                      category={selectedCategory}
+                      categories={categories}
+                      items={items.filter(item => item.categoryId === selectedCategoryId)}
+                      suggestions={suggestions}
+                      onAddItem={addItem}
+                      onRemoveItem={removeItem}
+                      onToggleItem={toggleItemDone}
+                      onEditItem={editItem}
+                      onChangeCategory={changeItemCategory}
+                      onHoldItem={holdItem}
+                      onBack={() => handleViewChange('categories')}
+                    />
+                  )}
+                </div>
+                <div style={{ display: currentView === 'history' ? 'block' : 'none', gridArea: '1 / 1' }}>
+                  <HistoryView />
+                </div>
+              </>
+            )}
           </div>
         </div>
       </DndContext>
