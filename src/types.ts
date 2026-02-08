@@ -65,7 +65,9 @@ export interface List {
 
   lastOpened: number;
 
-  members: ListMember[];
+  members: {
+    [uid: string]: ListMember;
+  };
 
   memberUids: string[];
 

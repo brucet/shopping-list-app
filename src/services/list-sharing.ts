@@ -56,7 +56,7 @@ export const acceptInvitation = async (invite: ListInvite, user: User) => {
     role: 'editor',
   };
   batch.update(listRef, {
-    members: [...(list.members || []), newMember],
+    members: { ...list.members, [user.uid]: newMember },
     memberUids: [...(list.memberUids || []), user.uid],
   });
   

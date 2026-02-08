@@ -54,7 +54,9 @@ export const useFirestore = (user: User | null) => {
           name: "My First List",
           createdAt: Date.now(),
           lastOpened: Date.now(),
-          members: [{ uid: user.uid, email: user.email as string, role: 'owner' }],
+          members: {
+            [user.uid]: { uid: user.uid, email: user.email as string, role: 'owner' },
+          },
           memberUids: [user.uid],
         };
         setDoc(newListRef, newList);
@@ -86,20 +88,20 @@ export const useFirestore = (user: User | null) => {
     const activeList = lists.find(l => l.id === activeListId);
     if (!activeList) return;
 
-    const owner = activeList.members.find(m => m.role === 'owner');
-    if (!owner) return;
+    const ownerUid = Object.keys(activeList.members).find(uid => activeList.members[uid].role === 'owner');
+    if (!ownerUid) return;
 
     const listeners = [
-      onSnapshot(query(collection(db, "users", owner.uid, "lists", activeListId, "categories"), orderBy("order")), (snapshot) => {
+      onSnapshot(query(collection(db, "users", ownerUid, "lists", activeListId, "categories"), orderBy("order")), (snapshot) => {
         setCategories(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Category)));
       }),
-      onSnapshot(query(collection(db, "users", owner.uid, "lists", activeListId, "items"), orderBy("createdAt")), (snapshot) => {
+      onSnapshot(query(collection(db, "users", ownerUid, "lists", activeListId, "items"), orderBy("createdAt")), (snapshot) => {
         setItems(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Item)));
       }),
-      onSnapshot(collection(db, "users", owner.uid, "lists", activeListId, "heldItems"), (snapshot) => {
+      onSnapshot(collection(db, "users", ownerUid, "lists", activeListId, "heldItems"), (snapshot) => {
         setHeldItems(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as HeldItem)));
       }),
-      onSnapshot(collection(db, "users", owner.uid, "lists", activeListId, "suggestions"), (snapshot) => {
+      onSnapshot(collection(db, "users", ownerUid, "lists", activeListId, "suggestions"), (snapshot) => {
         setSuggestions(snapshot.docs.reduce((acc, doc) => {
           acc[doc.id] = doc.data() as SuggestionsMap[string];
           return acc;
@@ -115,10 +117,11 @@ export const useFirestore = (user: User | null) => {
     if (!user || !activeListId) return;
     const backupState = debounce(async () => {
       const backupRef = doc(collection(db, "users", user.uid, "lists", activeListId, "backups"));
+      const limitedItems = items.slice(-250); // Keep the last 250 items
       await setDoc(backupRef, {
         createdAt: serverTimestamp(),
         categories,
-        items,
+        items: limitedItems,
         heldItems,
         suggestions,
       });
@@ -137,8 +140,8 @@ export const useFirestore = (user: User | null) => {
     if (!activeListId) return null;
     const activeList = lists.find(l => l.id === activeListId);
     if (!activeList) return null;
-    const owner = activeList.members.find(m => m.role === 'owner');
-    return owner ? owner.uid : null;
+    const ownerEntry = Object.entries(activeList.members).find(([, member]) => member.role === 'owner');
+    return ownerEntry ? ownerEntry[0] : null;
   }
 
   const handleCategoryOrderChange = (oldIndex: number, newIndex: number) => {
@@ -161,11 +164,11 @@ export const useFirestore = (user: User | null) => {
     const list = lists.find(l => l.id === listId);
     if (!list) return;
 
-    const owner = list.members.find(m => m.role === 'owner');
-    if (!owner) return;
+    const ownerUid = Object.keys(list.members).find(uid => list.members[uid].role === 'owner');
+    if (!ownerUid) return;
     
     setActiveListId(listId);
-    await updateDoc(doc(db, "users", owner.uid, "lists", listId), {
+    await updateDoc(doc(db, "users", ownerUid, "lists", listId), {
       lastOpened: Date.now(),
     });
   };
@@ -178,7 +181,9 @@ export const useFirestore = (user: User | null) => {
       name,
       createdAt: Date.now(),
       lastOpened: Date.now(),
-      members: [{ uid: user.uid, email: user.email as string, role: 'owner' }],
+      members: {
+        [user.uid]: { uid: user.uid, email: user.email as string, role: 'owner' },
+      },
       memberUids: [user.uid],
     };
     await setDoc(newListRef, newList);
@@ -190,10 +195,10 @@ export const useFirestore = (user: User | null) => {
     const list = lists.find(l => l.id === listId);
     if (!list) return;
 
-    const owner = list.members.find(m => m.role === 'owner');
-    if (!owner) return;
+    const ownerUid = Object.keys(list.members).find(uid => list.members[uid].role === 'owner');
+    if (!ownerUid) return;
     
-    await updateDoc(doc(db, "users", owner.uid, "lists", listId), {
+    await updateDoc(doc(db, "users", ownerUid, "lists", listId), {
       name: newName,
     });
   };
@@ -224,8 +229,8 @@ export const useFirestore = (user: User | null) => {
     const list = lists.find(l => l.id === listId);
     if (!list) return;
 
-    const owner = list.members.find(m => m.role === 'owner');
-    if (!owner || owner.uid !== user.uid) {
+    const ownerUid = Object.keys(list.members).find(uid => list.members[uid].role === 'owner');
+    if (!ownerUid || ownerUid !== user.uid) {
       alert("You are not the owner of this list, so you cannot delete it.");
       return;
     }
@@ -240,7 +245,7 @@ export const useFirestore = (user: User | null) => {
       // First, delete all subcollections
       const collectionsToMigrate = ["categories", "items", "suggestions", "heldItems", "backups"];
       for (const coll of collectionsToMigrate) {
-        const snapshot = await getDocs(collection(db, "users", owner.uid, "lists", listId, coll));
+        const snapshot = await getDocs(collection(db, "users", ownerUid, "lists", listId, coll));
         const deleteBatch = writeBatch(db);
         snapshot.forEach(doc => {
           deleteBatch.delete(doc.ref);
@@ -249,7 +254,7 @@ export const useFirestore = (user: User | null) => {
       }
 
       // Then, delete the list document itself
-      await deleteDoc(doc(db, "users", owner.uid, "lists", listId));
+      await deleteDoc(doc(db, "users", ownerUid, "lists", listId));
 
       // Switch to another list
       if (activeListId === listId) {
@@ -275,7 +280,9 @@ export const useFirestore = (user: User | null) => {
       name: "Migrated List",
       createdAt: Date.now(),
       lastOpened: Date.now(),
-      members: [{ uid: user.uid, email: user.email as string, role: 'owner' }],
+      members: {
+        [user.uid]: { uid: user.uid, email: user.email as string, role: 'owner' },
+      },
       memberUids: [user.uid],
     };
     await setDoc(newListRef, newList);
