@@ -4,8 +4,10 @@ import { User } from 'firebase/auth';
 import type { List } from '../types';
 import NewListForm from './NewListForm';
 import SwitchListModal from './SwitchListModal';
+import ShareListModal from './ShareListModal';
 import '../styles/NewListForm.css';
 import '../styles/SwitchListModal.css';
+import '../styles/ShareListModal.css';
 
 interface HeaderMenuProps {
   user: User | null;
@@ -22,13 +24,13 @@ interface HeaderMenuProps {
   onDeleteList: (listId: string) => void;
 }
 
-const HeaderMenu = ({ 
-  user, 
-  onLogout, 
-  onRemoveDone, 
-  onRemoveAll, 
-  onSetupSampleData, 
-  hasRootData, 
+const HeaderMenu = ({
+  user,
+  onLogout,
+  onRemoveDone,
+  onRemoveAll,
+  onSetupSampleData,
+  hasRootData,
   onMigrateData,
   lists,
   activeListId,
@@ -39,6 +41,7 @@ const HeaderMenu = ({
   const [isOpen, setIsOpen] = useState(false)
   const [showNewListForm, setShowNewListForm] = useState(false);
   const [showSwitchListModal, setShowSwitchListModal] = useState(false);
+  const [showShareListModal, setShowShareListModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -67,10 +70,12 @@ const HeaderMenu = ({
     action();
   }
 
+  const activeList = lists.find(list => list.id === activeListId);
+
   return (
     <>
       <div className="header-menu-container" ref={menuRef}>
-        <button 
+        <button
           className="header-menu-trigger"
           onClick={handleToggleMenu}
           title="More options"
@@ -85,7 +90,7 @@ const HeaderMenu = ({
         {isOpen && (
           <div className="header-menu-dropdown">
             {user && <div className="user-info">Signed in as {user.displayName}</div>}
-            
+
             <div className="list-management-section">
               <button className="header-menu-item" onClick={() => { setIsOpen(false); setShowSwitchListModal(true); }}>
                 <span className="header-menu-icon">🔁</span>
@@ -95,8 +100,14 @@ const HeaderMenu = ({
                 <span className="header-menu-icon">➕</span>
                 New List
               </button>
+              {activeList && (
+                <button className="header-menu-item" onClick={() => { setIsOpen(false); setShowShareListModal(true); }}>
+                  <span className="header-menu-icon">📤</span>
+                  Share List
+                </button>
+              )}
             </div>
-            
+
             {hasRootData && (
               <button className="header-menu-item" onClick={() => handleAction(onMigrateData)}>
                 <span className="header-menu-icon">🔄</span>
@@ -111,7 +122,7 @@ const HeaderMenu = ({
               <span className="header-menu-icon">✓</span>
               Remove Done Items
             </button>
-            
+
             <button className="header-menu-item danger" onClick={() => handleAction(onRemoveAll)}>
               <span className="header-menu-icon">🗑️</span>
               Remove All Items
@@ -124,9 +135,9 @@ const HeaderMenu = ({
         )}
       </div>
       {showNewListForm && (
-        <NewListForm 
-          onCreate={onCreateList} 
-          onClose={() => setShowNewListForm(false)} 
+        <NewListForm
+          onCreate={onCreateList}
+          onClose={() => setShowNewListForm(false)}
         />
       )}
       {showSwitchListModal && (
@@ -139,6 +150,13 @@ const HeaderMenu = ({
           }}
           onDeleteList={onDeleteList}
           onClose={() => setShowSwitchListModal(false)}
+        />
+      )}
+      {showShareListModal && activeList && user && (
+        <ShareListModal
+          list={activeList}
+          user={user}
+          onClose={() => setShowShareListModal(false)}
         />
       )}
     </>

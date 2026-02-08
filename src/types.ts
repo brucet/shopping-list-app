@@ -33,12 +33,58 @@ export interface HeldItem {
   createdAt: number;
 }
 
-export type ViewType = 'categories' | 'all-items' | 'suggestions' | 'held-items' | 'single-category' | 'history';
+export type ViewType = 'categories' | 'all-items' | 'suggestions' | 'held-items' | 'single-category' | 'history' | 'invitations';
+
+
+
+export type Role = 'owner' | 'editor' | 'viewer';
+
+
+
+export interface ListMember {
+
+  uid: string;
+
+  email: string;
+
+  role: Role;
+
+}
+
+
 
 // Exported List interface
+
 export interface List {
-  id: string;
+
+  id:string;
+
   name: string;
+
   createdAt: number;
+
   lastOpened: number;
+
+  members: ListMember[];
+
+  memberUids: string[];
+
+}
+
+
+
+export interface ListInvite {
+
+  id: string;
+
+  listId: string;
+
+  listName: string;
+
+  fromUid: string;
+
+  fromEmail: string;
+
+  toEmail: string;
+
 }

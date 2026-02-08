@@ -45,6 +45,13 @@ const BottomNav = ({ activeView, onViewChange }: BottomNavProps) => {
         <span className="nav-icon">📖</span>
         <span className="nav-label">History</span>
       </button>
+      <button
+        className={`nav-item ${activeView === 'invitations' ? 'active' : ''}`}
+        onClick={() => onViewChange('invitations')}
+      >
+        <span className="nav-icon">✉️</span>
+        <span className="nav-label">Invitations</span>
+      </button>
     </nav>
   )
 }
