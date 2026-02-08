@@ -22,6 +22,7 @@ import { getInvitations, acceptInvitation as acceptInvitationService, declineInv
 import debounce from 'lodash.debounce';
 import { parseItemText } from '../utils/itemParser';
 import { addEmojiToItem } from '../utils/emojiMatcher';
+import { arrayMove } from '@dnd-kit/sortable';
 
 export const useFirestore = (user: User | null) => {
   const [lists, setLists] = useState<List[]>([]);
@@ -140,6 +141,21 @@ export const useFirestore = (user: User | null) => {
     return owner ? owner.uid : null;
   }
 
+  const handleCategoryOrderChange = (oldIndex: number, newIndex: number) => {
+    const ownerUid = getListOwner();
+    if (!user || !activeListId || !ownerUid) return;
+
+    const newCategories = arrayMove(categories, oldIndex, newIndex);
+    setCategories(newCategories);
+
+    const batch = writeBatch(db);
+    newCategories.forEach((category, index) => {
+      const categoryRef = doc(db, "users", ownerUid, "lists", activeListId, "categories", category.id);
+      batch.update(categoryRef, { order: index });
+    });
+    batch.commit();
+  };
+
   const switchList = async (listId: string) => {
     if (!user) return;
     const list = lists.find(l => l.id === listId);
@@ -167,6 +183,19 @@ export const useFirestore = (user: User | null) => {
     };
     await setDoc(newListRef, newList);
     switchList(newList.id);
+  };
+
+  const updateList = async (listId: string, newName: string) => {
+    if (!user) return;
+    const list = lists.find(l => l.id === listId);
+    if (!list) return;
+
+    const owner = list.members.find(m => m.role === 'owner');
+    if (!owner) return;
+    
+    await updateDoc(doc(db, "users", owner.uid, "lists", listId), {
+      name: newName,
+    });
   };
 
   const acceptInvitation = async (invite: ListInvite) => {
@@ -236,26 +265,24 @@ export const useFirestore = (user: User | null) => {
   };
 
   const migrateData = async () => {
-    if (!user) return;
+    if (!user || !user.email) return;
 
-    let targetListId = activeListId;
-    if (!targetListId) {
-      const defaultList = lists.find(l => l.name === "My First List") || lists[0];
-      if (defaultList) {
-        targetListId = defaultList.id;
-      } else {
-        const newListRef = doc(collection(db, "users", user.uid, "lists"));
-        const newList = { id: newListRef.id, name: "Migrated List", createdAt: Date.now(), lastOpened: Date.now() };
-        await setDoc(newListRef, newList);
-        targetListId = newList.id;
-        setActiveListId(targetListId);
-      }
-    }
+    if (!confirm(`This will create a new list called "Migrated List" and move your old data to it. This may overwrite existing data in that list. Are you sure?`)) return;
+
+    const newListRef = doc(collection(db, "users", user.uid, "lists"));
+    const newList: List = {
+      id: newListRef.id,
+      name: "Migrated List",
+      createdAt: Date.now(),
+      lastOpened: Date.now(),
+      members: [{ uid: user.uid, email: user.email as string, role: 'owner' }],
+      memberUids: [user.uid],
+    };
+    await setDoc(newListRef, newList);
+    const targetListId = newList.id;
     
-    if (!confirm(`This will migrate your old data to the list: "${lists.find(l => l.id === targetListId)?.name}". This may overwrite existing data in that list. Are you sure?`)) return;
-
     const batch = writeBatch(db);
-    const collectionsToMigrate = ["categories", "items", "suggestions", "heldItems", "backups"];
+    const collectionsToMigrate = ["categories", "items", "suggestions", "heldItems"];
 
     try {
       for (const coll of collectionsToMigrate) {
@@ -268,6 +295,7 @@ export const useFirestore = (user: User | null) => {
 
       await batch.commit();
       alert("Data migration successful!");
+      setActiveListId(targetListId);
 
       if (confirm("Would you like to delete the old, unauthenticated data now? This cannot be undone.")) {
         const deleteBatch = writeBatch(db);
@@ -579,9 +607,9 @@ export const useFirestore = (user: User | null) => {
     suggestions,
     invitations,
     hasRootData,
-    setCategories,
     switchList,
     createList,
+    updateList,
     acceptInvitation,
     declineInvitation,
     deleteList,
@@ -603,5 +631,6 @@ export const useFirestore = (user: User | null) => {
     editSuggestion,
     deleteSuggestion,
     setupSampleData,
+    handleCategoryOrderChange,
   };
 };

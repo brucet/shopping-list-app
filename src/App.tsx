@@ -1,14 +1,25 @@
-import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors,} from '@dnd-kit/core';
-import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy,} from '@dnd-kit/sortable';
-import {auth} from './firebase';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { auth } from './firebase';
 import Login from './components/Login';
 import BottomNav from './components/BottomNav';
 import HeaderMenu from './components/HeaderMenu';
 import MainView from './components/MainView';
-import {useAuth} from './hooks/useAuth';
-import {useFirestore} from './hooks/useFirestore';
-import {useApp} from './hooks/useApp';
-import {SortableCategoryItem} from './components/SortableCategoryItem';
+import { useAuth } from './hooks/useAuth';
+import { useFirestore } from './hooks/useFirestore';
+import { useApp } from './hooks/useApp';
+import { SortableCategoryItem } from './components/SortableCategoryItem';
 import './App.css';
 import './styles/Login.css';
 
@@ -28,9 +39,9 @@ const App = () => {
     suggestions,
     invitations,
     hasRootData,
-    setCategories,
     switchList,
     createList,
+    updateList,
     deleteList,
     migrateData,
     addItem,
@@ -52,6 +63,7 @@ const App = () => {
     setupSampleData,
     acceptInvitation,
     declineInvitation,
+    handleCategoryOrderChange,
   } = useFirestore(user);
   const {
     currentView,
@@ -78,12 +90,10 @@ const App = () => {
     const {active, over} = event;
     
     if (over && active.id !== over.id) {
-      setCategories((categories: any) => {
-        const oldIndex = categories.findIndex((c: any) => c.id === active.id);
-        const newIndex = categories.findIndex((c: any) => c.id === over.id);
-        
-        return arrayMove(categories, oldIndex, newIndex);
-      });
+      const oldIndex = categories.findIndex((c: any) => c.id === active.id);
+      const newIndex = categories.findIndex((c: any) => c.id === over.id);
+      
+      handleCategoryOrderChange(oldIndex, newIndex);
     }
   };
 
@@ -118,6 +128,7 @@ const App = () => {
           onSelectList={switchList}
           onCreateList={createList}
           onDeleteList={deleteList}
+          onUpdateList={updateList}
         />
       </header>
       <DndContext 

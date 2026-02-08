@@ -22,6 +22,7 @@ interface HeaderMenuProps {
   onSelectList: (listId: string) => void;
   onCreateList: (name: string) => void;
   onDeleteList: (listId: string) => void;
+  onUpdateList: (listId: string, newName: string) => void;
 }
 
 const HeaderMenu = ({
@@ -36,7 +37,8 @@ const HeaderMenu = ({
   activeListId,
   onSelectList,
   onCreateList,
-  onDeleteList
+  onDeleteList,
+  onUpdateList,
 }: HeaderMenuProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const [showNewListForm, setShowNewListForm] = useState(false);
@@ -149,6 +151,7 @@ const HeaderMenu = ({
             setShowSwitchListModal(false);
           }}
           onDeleteList={onDeleteList}
+          onUpdateList={onUpdateList}
           onClose={() => setShowSwitchListModal(false)}
         />
       )}
