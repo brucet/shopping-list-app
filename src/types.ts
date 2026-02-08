@@ -34,3 +34,11 @@ export interface HeldItem {
 }
 
 export type ViewType = 'categories' | 'all-items' | 'suggestions' | 'held-items' | 'single-category' | 'history';
+
+// Exported List interface
+export interface List {
+  id: string;
+  name: string;
+  createdAt: number;
+  lastOpened: number;
+}

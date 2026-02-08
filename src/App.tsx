@@ -17,7 +17,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import debounce from 'lodash.debounce';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, query, orderBy, getDoc, getDocs, serverTimestamp } from 'firebase/firestore'
+import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, query, orderBy, getDoc, getDocs, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { db, auth } from './firebase'
 import { onAuthStateChanged, User } from 'firebase/auth';
 import Login from './components/Login';
@@ -31,7 +31,7 @@ import SingleCategoryView from './components/SingleCategoryView'
 import HistoryView from './components/HistoryView';
 import { addEmojiToItem } from './utils/emojiMatcher'
 import { parseItemText } from './utils/itemParser';
-import type { Category, Item, SuggestionsMap, HeldItem, ViewType } from './types'
+import type { Category, Item, SuggestionsMap, HeldItem, ViewType, List } from './types'
 import './App.css'
 import './styles/Login.css';
 
@@ -87,6 +87,8 @@ function SortableCategoryItem(props: {
 const App = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [lists, setLists] = useState<List[]>([]);
+  const [activeListId, setActiveListId] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([])
   const [items, setItems] = useState<Item[]>([])
   const [heldItems, setHeldItems] = useState<HeldItem[]>([])
@@ -97,6 +99,7 @@ const App = () => {
   const [showInlineAddCategoryForm, setShowInlineAddCategoryForm] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryColor, setNewCategoryColor] = useState(PRESET_COLORS[0])
+  const [hasRootData, setHasRootData] = useState(false);
   
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -113,46 +116,83 @@ const App = () => {
     return () => unsubscribe();
   }, []);
 
-  // Firestore listeners
+  useEffect(() => {
+    const checkRootData = async () => {
+      if (!user) return;
+      const collections = ["categories", "items", "suggestions", "heldItems", "backups"];
+      for (const coll of collections) {
+        const snapshot = await getDocs(query(collection(db, coll)));
+        if (!snapshot.empty) {
+          setHasRootData(true);
+          return;
+        }
+      }
+    };
+    checkRootData();
+  }, [user]);
+
+  // Fetch lists
   useEffect(() => {
     if (!user) return;
-
-    const unsubscribeCategories = onSnapshot(query(collection(db, "users", user.uid, "categories"), orderBy("order")), (snapshot) => {
-      const cats = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Category));
-      setCategories(cats);
+    const unsubscribe = onSnapshot(query(collection(db, "users", user.uid, "lists"), orderBy("lastOpened", "desc")), (snapshot) => {
+      if (snapshot.empty) {
+        const newListRef = doc(collection(db, "users", user.uid, "lists"));
+        const newList = {
+          id: newListRef.id,
+          name: "My First List",
+          createdAt: Date.now(),
+          lastOpened: Date.now(),
+        };
+        setDoc(newListRef, newList);
+        setLists([newList]);
+        setActiveListId(newList.id);
+        return;
+      }
+      const userLists = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as List));
+      setLists(userLists);
+      if (!activeListId) {
+        setActiveListId(userLists[0].id);
+      }
     });
+    return () => unsubscribe();
+  }, [user, activeListId]);
 
-    const unsubscribeItems = onSnapshot(query(collection(db, "users", user.uid, "items"), orderBy("createdAt")), (snapshot) => {
-      const its = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Item));
-      setItems(its);
-    });
-    
-    const unsubscribeHeldItems = onSnapshot(collection(db, "users", user.uid, "heldItems"), (snapshot) => {
-      const hld = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as HeldItem));
-      setHeldItems(hld);
-    });
+  // Firestore listeners for active list
+  useEffect(() => {
+    if (!user || !activeListId) {
+      setCategories([]);
+      setItems([]);
+      setHeldItems([]);
+      setSuggestions({});
+      return;
+    }
 
-    const unsubscribeSuggestions = onSnapshot(collection(db, "users", user.uid, "suggestions"), (snapshot) => {
-      const sugs = snapshot.docs.reduce((acc, doc) => {
-        acc[doc.id] = doc.data() as SuggestionsMap[string];
-        return acc;
-      }, {} as SuggestionsMap);
-      setSuggestions(sugs);
-    });
+    const listeners = [
+      onSnapshot(query(collection(db, "users", user.uid, "lists", activeListId, "categories"), orderBy("order")), (snapshot) => {
+        setCategories(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Category)));
+      }),
+      onSnapshot(query(collection(db, "users", user.uid, "lists", activeListId, "items"), orderBy("createdAt")), (snapshot) => {
+        setItems(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Item)));
+      }),
+      onSnapshot(collection(db, "users", user.uid, "lists", activeListId, "heldItems"), (snapshot) => {
+        setHeldItems(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as HeldItem)));
+      }),
+      onSnapshot(collection(db, "users", user.uid, "lists", activeListId, "suggestions"), (snapshot) => {
+        setSuggestions(snapshot.docs.reduce((acc, doc) => {
+          acc[doc.id] = doc.data() as SuggestionsMap[string];
+          return acc;
+        }, {} as SuggestionsMap));
+      }),
+    ];
 
-    return () => {
-      unsubscribeCategories();
-      unsubscribeItems();
-      unsubscribeHeldItems();
-      unsubscribeSuggestions();
-    };
-  }, [user]);
+    return () => listeners.forEach(unsubscribe => unsubscribe());
+  }, [user, activeListId]);
   
   // Backup state on change
   useEffect(() => {
-    if (!user) return;
+    if (!user || !activeListId) return;
     const backupState = debounce(async () => {
-      const backupRef = doc(collection(db, "users", user.uid, "backups"));
+      const backupRef = doc(collection(db, "users", user.uid, "lists", activeListId, "backups"));
       await setDoc(backupRef, {
         createdAt: serverTimestamp(),
         categories,
@@ -169,7 +209,7 @@ const App = () => {
     return () => {
       backupState.cancel();
     };
-  }, [categories, items, heldItems, suggestions, user]);
+  }, [categories, items, heldItems, suggestions, user, activeListId]);
 
   // Initialize view from URL on mount
   useEffect(() => {
@@ -244,6 +284,27 @@ const App = () => {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [categories])
 
+  const switchList = async (listId: string) => {
+    if (!user) return;
+    setActiveListId(listId);
+    await updateDoc(doc(db, "users", user.uid, "lists", listId), {
+      lastOpened: Date.now(),
+    });
+  };
+
+  const createList = async (name: string) => {
+    if (!user) return;
+    const newListRef = doc(collection(db, "users", user.uid, "lists"));
+    const newList = {
+      id: newListRef.id,
+      name,
+      createdAt: Date.now(),
+      lastOpened: Date.now(),
+    };
+    await setDoc(newListRef, newList);
+    switchList(newList.id);
+  };
+  
   const handleDragEnd = (event: DragEndEvent) => {
     const {active, over} = event;
     
@@ -254,10 +315,10 @@ const App = () => {
         
         const newCategories = arrayMove(categories, oldIndex, newIndex);
 
-        if (user) {
+        if (user && activeListId) {
           const batch = writeBatch(db);
           newCategories.forEach((category, index) => {
-            const categoryRef = doc(db, "users", user.uid, "categories", category.id);
+            const categoryRef = doc(db, "users", user.uid, "lists", activeListId, "categories", category.id);
             batch.update(categoryRef, { order: index });
           });
           batch.commit();
@@ -268,14 +329,102 @@ const App = () => {
     }
   };
 
-  const addItem = async (categoryId: string, text: string, quantity?: string) => {
+  const deleteList = async (listId: string) => {
     if (!user) return;
+    if (lists.length <= 1) {
+      alert("You cannot delete your only list.");
+      return;
+    }
+    if (!confirm(`Are you sure you want to delete this list and all of its contents? This cannot be undone.`)) return;
+
+    try {
+      // First, delete all subcollections
+      const collectionsToMigrate = ["categories", "items", "suggestions", "heldItems", "backups"];
+      for (const coll of collectionsToMigrate) {
+        const snapshot = await getDocs(collection(db, "users", user.uid, "lists", listId, coll));
+        const deleteBatch = writeBatch(db);
+        snapshot.forEach(doc => {
+          deleteBatch.delete(doc.ref);
+        });
+        await deleteBatch.commit();
+      }
+
+      // Then, delete the list document itself
+      await deleteDoc(doc(db, "users", user.uid, "lists", listId));
+
+      // Switch to another list
+      if (activeListId === listId) {
+        const newActiveList = lists.find(l => l.id !== listId);
+        if (newActiveList) {
+          setActiveListId(newActiveList.id);
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting list: ", error);
+      alert("Failed to delete list. Check console for details.");
+    }
+  };
+
+  const migrateData = async () => {
+    if (!user) return;
+
+    let targetListId = activeListId;
+    if (!targetListId) {
+      const defaultList = lists.find(l => l.name === "My First List") || lists[0];
+      if (defaultList) {
+        targetListId = defaultList.id;
+      } else {
+        const newListRef = doc(collection(db, "users", user.uid, "lists"));
+        const newList = { id: newListRef.id, name: "Migrated List", createdAt: Date.now(), lastOpened: Date.now() };
+        await setDoc(newListRef, newList);
+        targetListId = newList.id;
+        setActiveListId(targetListId);
+      }
+    }
+    
+    if (!confirm(`This will migrate your old data to the list: "${lists.find(l => l.id === targetListId)?.name}". This may overwrite existing data in that list. Are you sure?`)) return;
+
+    const batch = writeBatch(db);
+    const collectionsToMigrate = ["categories", "items", "suggestions", "heldItems", "backups"];
+
+    try {
+      for (const coll of collectionsToMigrate) {
+        const rootSnapshot = await getDocs(query(collection(db, coll)));
+        rootSnapshot.forEach(docSnapshot => {
+          const userDocRef = doc(db, "users", user.uid, "lists", targetListId!, coll, docSnapshot.id);
+          batch.set(userDocRef, docSnapshot.data());
+        });
+      }
+
+      await batch.commit();
+      alert("Data migration successful!");
+
+      if (confirm("Would you like to delete the old, unauthenticated data now? This cannot be undone.")) {
+        const deleteBatch = writeBatch(db);
+        for (const coll of collectionsToMigrate) {
+          const rootSnapshot = await getDocs(query(collection(db, coll)));
+          rootSnapshot.forEach(documentSnapshot => {
+            deleteBatch.delete(documentSnapshot.ref);
+          });
+        }
+        await deleteBatch.commit();
+        alert("Old data deleted.");
+        setHasRootData(false);
+      }
+    } catch (error) {
+      console.error("Data migration error: ", error);
+      alert("Data migration failed. Check the console for details.");
+    }
+  };
+
+  const addItem = async (categoryId: string, text: string, quantity?: string) => {
+    if (!user || !activeListId) return;
     const { text: newText, quantity: newQuantity } = parseItemText(text);
     if (!newText.trim()) return
 
     const capitalizedText = newText.trim().charAt(0).toUpperCase() + newText.trim().slice(1);
     const itemText = addEmojiToItem(capitalizedText)
-    const newItemRef = doc(collection(db, "users", user.uid, "items"));
+    const newItemRef = doc(collection(db, "users", user.uid, "lists", activeListId, "items"));
     const resolvedQuantity = quantity ?? newQuantity
     const newItem = {
       text: itemText,
@@ -289,7 +438,7 @@ const App = () => {
     // Update suggestions
     const textForMatching = text.trim()
     const normalizedText = textForMatching.toLowerCase()
-    const suggestionRef = doc(db, "users", user.uid, "suggestions", normalizedText);
+    const suggestionRef = doc(db, "users", user.uid, "lists", activeListId, "suggestions", normalizedText);
     const suggestionDoc = await getDoc(suggestionRef);
     if (suggestionDoc.exists()) {
       await setDoc(suggestionRef, {
@@ -307,13 +456,13 @@ const App = () => {
   }
 
   const removeItem = async (itemId: string) => {
-    if (!user) return;
-    const itemRef = doc(db, "users", user.uid, "items", itemId);
+    if (!user || !activeListId) return;
+    const itemRef = doc(db, "users", user.uid, "lists", activeListId, "items", itemId);
     await deleteDoc(itemRef);
   }
 
   const toggleItemDone = async (itemId: string) => {
-    if (!user) return;
+    if (!user || !activeListId) return;
     const originalItems = items;
     const itemToToggle = items.find(item => item.id === itemId);
     if (!itemToToggle) return;
@@ -327,37 +476,36 @@ const App = () => {
 
     // Firestore update
     try {
-      const itemRef = doc(db, "users", user.uid, "items", itemId);
+      const itemRef = doc(db, "users", user.uid, "lists", activeListId, "items", itemId);
       await setDoc(itemRef, { done: !itemToToggle.done }, { merge: true });
     } catch (error) {
       console.error("Error updating item: ", error);
       // Revert the optimistic update on error
       setItems(originalItems);
-      // Optionally, show an error message to the user
     }
   }
 
   const addCategory = async (name: string, color: string) => {
-    if (!user) return;
-    const newCategoryRef = doc(collection(db, "users", user.uid, "categories"));
+    if (!user || !activeListId) return;
+    const newCategoryRef = doc(collection(db, "users", user.uid, "lists", activeListId, "categories"));
     await setDoc(newCategoryRef, { name, color, order: categories.length });
   }
 
   const updateCategory = async (id: string, name: string, color: string) => {
-    if (!user) return;
-    const categoryRef = doc(db, "users", user.uid, "categories", id);
+    if (!user || !activeListId) return;
+    const categoryRef = doc(db, "users", user.uid, "lists", activeListId, "categories", id);
     await setDoc(categoryRef, { name, color }, { merge: true });
   }
 
   const deleteCategory = async (id: string) => {
-    if (!user) return;
+    if (!user || !activeListId) return;
     const batch = writeBatch(db);
-    const categoryRef = doc(db, "users", user.uid, "categories", id);
+    const categoryRef = doc(db, "users", user.uid, "lists", activeListId, "categories", id);
     batch.delete(categoryRef);
 
     const categoryItems = items.filter(item => item.categoryId === id);
     categoryItems.forEach(item => {
-      const itemRef = doc(db, "users", user.uid, "items", item.id);
+      const itemRef = doc(db, "users", user.uid, "lists", activeListId, "items", item.id);
       batch.delete(itemRef);
     });
 
@@ -370,13 +518,12 @@ const App = () => {
   }
 
   const editItem = async (itemId: string, newText: string, quantity?: string) => {
-    if (!user) return;
+    if (!user || !activeListId) return;
     const capitalizedText = newText.trim().charAt(0).toUpperCase() + newText.trim().slice(1);
-    const { text: trimmedText } = parseItemText(capitalizedText); // No need to parse quantity from text here
+    const { text: trimmedText } = parseItemText(capitalizedText);
     const itemText = addEmojiToItem(trimmedText)
-    const itemRef = doc(db, "users", user.uid, "items", itemId);
+    const itemRef = doc(db, "users", user.uid, "lists", activeListId, "items", itemId);
     
-    // Find the old item to get its text for suggestion update
     const oldItemDoc = await getDoc(itemRef);
     const oldItem = oldItemDoc.data();
 
@@ -386,16 +533,15 @@ const App = () => {
     };
     await setDoc(itemRef, updatedItem, { merge: true });
 
-    // Update suggestions: rename the old suggestion key to new one if text changed
     if (oldItem && oldItem.text !== itemText) {
       const oldTextWithoutEmoji = oldItem.text.replace(/^[\u{1F300}-\u{1F9FF}]\s*/u, '').toLowerCase()
       const newTextWithoutEmoji = newText.trim().toLowerCase()
       
       if (oldTextWithoutEmoji !== newTextWithoutEmoji) {
-        const oldSuggestionRef = doc(db, "users", user.uid, "suggestions", oldTextWithoutEmoji);
+        const oldSuggestionRef = doc(db, "users", user.uid, "lists", activeListId, "suggestions", oldTextWithoutEmoji);
         const oldSuggestionDoc = await getDoc(oldSuggestionRef);
         if (oldSuggestionDoc.exists()) {
-          const newSuggestionRef = doc(db, "users", user.uid, "suggestions", newTextWithoutEmoji);
+          const newSuggestionRef = doc(db, "users", user.uid, "lists", activeListId, "suggestions", newTextWithoutEmoji);
           await setDoc(newSuggestionRef, oldSuggestionDoc.data());
           await deleteDoc(oldSuggestionRef);
         }
@@ -404,19 +550,19 @@ const App = () => {
   }
 
   const changeItemCategory = async (itemId: string, toCategoryId: string) => {
-    if (!user) return;
-    const itemRef = doc(db, "users", user.uid, "items", itemId);
+    if (!user || !activeListId) return;
+    const itemRef = doc(db, "users", user.uid, "lists", activeListId, "items", itemId);
     await setDoc(itemRef, { categoryId: toCategoryId }, { merge: true });
   }
 
   const removeDoneItems = async () => {
-    if (!user) return;
+    if (!user || !activeListId) return;
     if (!confirm('Remove all completed items from your shopping list?')) return
 
     const batch = writeBatch(db);
     items.forEach(item => {
       if (item.done) {
-        const itemRef = doc(db, "users", user.uid, "items", item.id);
+        const itemRef = doc(db, "users", user.uid, "lists", activeListId, "items", item.id);
         batch.delete(itemRef);
       }
     });
@@ -424,29 +570,29 @@ const App = () => {
   }
 
   const removeAllItems = async () => {
-    if (!user) return;
+    if (!user || !activeListId) return;
     if (!confirm('Remove ALL items from your shopping list? Held items will be moved back to their categories.')) return
 
     const batch = writeBatch(db);
     items.forEach(item => {
-      const itemRef = doc(db, "users", user.uid, "items", item.id);
+      const itemRef = doc(db, "users", user.uid, "lists", activeListId, "items", item.id);
       batch.delete(itemRef);
     });
     heldItems.forEach(item => {
-      const itemRef = doc(db, "users", user.uid, "heldItems", item.id);
+      const itemRef = doc(db, "users", user.uid, "lists", activeListId, "heldItems", item.id);
       batch.delete(itemRef);
     });
     await batch.commit();
   }
 
   const holdItem = async (itemId: string) => {
-    if (!user) return;
+    if (!user || !activeListId) return;
     const item = items.find(i => i.id === itemId)
     if (!item) return
 
     const batch = writeBatch(db);
-    const itemRef = doc(db, "users", user.uid, "items", itemId);
-    const heldItemRef = doc(db, "users", user.uid, "heldItems", itemId);
+    const itemRef = doc(db, "users", user.uid, "lists", activeListId, "items", itemId);
+    const heldItemRef = doc(db, "users", user.uid, "lists", activeListId, "heldItems", itemId);
 
     batch.delete(itemRef);
     batch.set(heldItemRef, { ...item });
@@ -455,13 +601,13 @@ const App = () => {
   }
 
   const unholdItem = async (itemId: string, categoryId: string) => {
-    if (!user) return;
+    if (!user || !activeListId) return;
     const heldItem = heldItems.find(i => i.id === itemId)
     if (!heldItem) return
 
     const batch = writeBatch(db);
-    const heldItemRef = doc(db, "users", user.uid, "heldItems", itemId);
-    const itemRef = doc(db, "users", user.uid, "items", itemId);
+    const heldItemRef = doc(db, "users", user.uid, "lists", activeListId, "heldItems", itemId);
+    const itemRef = doc(db, "users", user.uid, "lists", activeListId, "items", itemId);
 
     batch.delete(heldItemRef);
     batch.set(itemRef, { text: heldItem.text, categoryId, done: false, createdAt: heldItem.createdAt || Date.now() });
@@ -470,17 +616,17 @@ const App = () => {
   }
 
   const deleteHeldItem = async (itemId: string) => {
-    if (!user) return;
-    const heldItemRef = doc(db, "users", user.uid, "heldItems", itemId);
+    if (!user || !activeListId) return;
+    const heldItemRef = doc(db, "users", user.uid, "lists", activeListId, "heldItems", itemId);
     await deleteDoc(heldItemRef);
   }
 
   const editHeldItem = async (itemId: string, newText: string, newQuantity?: string) => {
-    if (!user) return;
+    if (!user || !activeListId) return;
     const { text } = parseItemText(newText);
     const capitalizedText = text.trim().charAt(0).toUpperCase() + text.trim().slice(1);
     const itemText = addEmojiToItem(capitalizedText)
-    const itemRef = doc(db, "users", user.uid, "heldItems", itemId);
+    const itemRef = doc(db, "users", user.uid, "lists", activeListId, "heldItems", itemId);
     
     const updatedItem = {
       text: itemText,
@@ -490,16 +636,16 @@ const App = () => {
   }
 
   const editSuggestion = async (oldKey: string, newText: string, categoryId: string) => {
-    if (!user) return;
+    if (!user || !activeListId) return;
     const newKey = newText.toLowerCase()
-    const suggestionRef = doc(db, "users", user.uid, "suggestions", oldKey);
+    const suggestionRef = doc(db, "users", user.uid, "lists", activeListId, "suggestions", oldKey);
     const suggestionDoc = await getDoc(suggestionRef);
     
     if (!suggestionDoc.exists()) return
 
     if (oldKey !== newKey) {
       const batch = writeBatch(db);
-      const newSuggestionRef = doc(db, "users", user.uid, "suggestions", newKey);
+      const newSuggestionRef = doc(db, "users", user.uid, "lists", activeListId, "suggestions", newKey);
       batch.set(newSuggestionRef, { ...suggestionDoc.data(), text: addEmojiToItem(newText), categoryId });
       batch.delete(suggestionRef);
       await batch.commit();
@@ -509,11 +655,11 @@ const App = () => {
   }
 
   const deleteSuggestion = async (key: string) => {
-    if (!user) return;
-    const suggestionRef = doc(db, "users", user.uid, "suggestions", key);
+    if (!user || !activeListId) return;
+    const suggestionRef = doc(db, "users", user.uid, "lists", activeListId, "suggestions", key);
     await deleteDoc(suggestionRef);
   }
-
+  
   const handleViewChange = (view: ViewType) => {
     setCurrentView(view)
     setSelectedCategoryId(null)
@@ -525,26 +671,26 @@ const App = () => {
   }
 
   const setupSampleData = async () => {
-    if (!user) return;
+    if (!user || !activeListId) return;
     if (!confirm('This will replace your current list with sample data. Are you sure?')) return
 
     const batch = writeBatch(db);
 
     const collectionsToDelete = ["categories", "items", "heldItems", "suggestions"];
     for (const coll of collectionsToDelete) {
-      const snapshot = await getDocs(collection(db, "users", user.uid, coll));
+      const snapshot = await getDocs(collection(db, "users", user.uid, "lists", activeListId, coll));
       snapshot.docs.forEach(doc => batch.delete(doc.ref));
     }
 
     // Add sample data
     const { SAMPLE_CATEGORIES, SAMPLE_ITEMS } = await import('./sample-data');
     SAMPLE_CATEGORIES.forEach(category => {
-      const categoryRef = doc(db, "users", user.uid, "categories", category.id);
+      const categoryRef = doc(db, "users", user.uid, "lists", activeListId, "categories", category.id);
       batch.set(categoryRef, category);
     });
     Object.entries(SAMPLE_ITEMS).forEach(([categoryId, items]) => {
       items.forEach((item, index) => {
-        const itemRef = doc(db, "users", user.uid, "items", item.id);
+        const itemRef = doc(db, "users", user.uid, "lists", activeListId, "items", item.id);
         batch.set(itemRef, { ...item, categoryId, createdAt: Date.now() + index });
       });
     });
@@ -554,7 +700,7 @@ const App = () => {
     setCurrentView('categories');
     setSelectedCategoryId(null);
   }
-
+  
   const handleInlineAddCategory = (e: React.FormEvent) => {
     e.preventDefault()
     if (newCategoryName.trim()) {
@@ -571,6 +717,7 @@ const App = () => {
 
   // Get the selected category object
   const selectedCategory = selectedCategoryId ? categories.find(c => c.id === selectedCategoryId) : null
+  const activeList = lists.find(l => l.id === activeListId);
 
   if (isLoading) {
     return <div className="main-loading">Loading...</div>;
@@ -583,13 +730,20 @@ const App = () => {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🛒 Shopping List</h1>
+        <h1>🛒 {activeList?.name || 'Shopping List'}</h1>
         <HeaderMenu 
           user={user}
           onLogout={handleLogout}
           onRemoveDone={removeDoneItems} 
           onRemoveAll={removeAllItems}
           onSetupSampleData={setupSampleData} 
+          hasRootData={hasRootData}
+          onMigrateData={migrateData}
+          lists={lists}
+          activeListId={activeListId}
+          onSelectList={switchList}
+          onCreateList={createList}
+          onDeleteList={deleteList}
         />
       </header>
       <DndContext 
