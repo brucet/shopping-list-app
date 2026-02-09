@@ -5,7 +5,6 @@ A beautiful, interactive shopping list application built with React and drag-and
 ## Features
 
 - 📦 **Categories**: Organize items into categories (Fruit & Veg, Dairy, Meat & Fish, Pantry, Frozen)
-- 🎨 **Customizable**: Add, edit, and delete categories with custom colors
 - 🎯 **Drag & Drop**: Drag items between categories and reorder them
 - ✅ **Check Items**: Mark items as done
 - 📱 **Multiple Views**: 

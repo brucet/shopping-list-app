@@ -57,7 +57,7 @@ export default function SingleCategoryView({
 
   return (
     <div className="single-category-view">
-      <div className="single-category-header" style={{ backgroundColor: category.color }}>
+      <div className="single-category-header">
         <button className="back-button" onClick={onBack}>
           ← Back
         </button>

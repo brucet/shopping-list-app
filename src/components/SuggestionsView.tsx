@@ -102,10 +102,7 @@ export default function SuggestionsView({ suggestions, categories, items, onAddS
     return category ? category.name : 'Unknown'
   }
 
-  const getCategoryColor = (categoryId: string) => {
-    const category = categories.find(c => c.id === categoryId)
-    return category ? category.color : '#f0f0f0'
-  }
+
 
   const formatLastAdded = (timestamp: number) => {
     const now = Date.now()
@@ -188,7 +185,7 @@ export default function SuggestionsView({ suggestions, categories, items, onAddS
                     <div className="suggestion-meta">
                       <span 
                         className="suggestion-category"
-                        style={{ backgroundColor: getCategoryColor(suggestion.categoryId) }}
+
                       >
                         {getCategoryName(suggestion.categoryId)}
                       </span>

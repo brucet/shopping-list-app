@@ -23,10 +23,7 @@ import { SortableCategoryItem } from './components/SortableCategoryItem';
 import './App.css';
 import './styles/Login.css';
 
-const PRESET_COLORS = [
-  '#E8F5E9', '#F3E5F5', '#FFEBEE', '#FFF3E0', '#E0F2F1',
-  '#FCE4EC', '#F1F8E9', '#E3F2FD',
-];
+
 
 const App = () => {
   const { user, isLoading } = useAuth();
@@ -70,12 +67,10 @@ const App = () => {
     selectedCategoryId,
     showInlineAddCategoryForm,
     newCategoryName,
-    newCategoryColor,
     handleViewChange,
     handleCategoryClick,
     setShowInlineAddCategoryForm,
     setNewCategoryName,
-    setNewCategoryColor,
     handleInlineAddCategory,
   } = useApp(categories);
 
@@ -167,17 +162,7 @@ const App = () => {
                       autoFocus
                       className="sidebar-category-input"
                     />
-                    <div className="sidebar-color-picker">
-                      {PRESET_COLORS.map((color) => (
-                        <button
-                          key={color}
-                          type="button"
-                          className={`sidebar-color-option ${newCategoryColor === color ? 'selected' : ''}`}
-                          style={{ backgroundColor: color }}
-                          onClick={() => setNewCategoryColor(color)}
-                        />
-                      ))}
-                    </div>
+
                     <div className="sidebar-add-category-actions">
                       <button type="submit" className="sidebar-save-btn">✓ Add</button>
                       <button type="button" className="sidebar-cancel-btn" onClick={() => setShowInlineAddCategoryForm(false)}>✕ Cancel</button>

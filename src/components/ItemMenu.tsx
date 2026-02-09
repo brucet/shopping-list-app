@@ -99,7 +99,6 @@ const ItemMenu = ({ onEdit, onChangeCategory, onDelete, onHold, categories, curr
                         key={category.id}
                         className="submenu-item"
                         onClick={(e) => handleChangeCategory(category.id, e)}
-                        style={{ borderLeft: `3px solid ${category.color}` }}
                       >
                         {category.name}
                       </button>

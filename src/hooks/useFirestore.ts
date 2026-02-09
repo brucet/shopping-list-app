@@ -393,18 +393,18 @@ export const useFirestore = (user: User | null) => {
     }
   }
 
-  const addCategory = async (name: string, color: string) => {
+  const addCategory = async (name: string) => {
     const ownerUid = getListOwner();
     if (!user || !activeListId || !ownerUid) return;
     const newCategoryRef = doc(collection(db, "users", ownerUid, "lists", activeListId, "categories"));
-    await setDoc(newCategoryRef, { name, color, order: categories.length });
+    await setDoc(newCategoryRef, { name, order: categories.length });
   }
 
-  const updateCategory = async (id: string, name: string, color: string) => {
+  const updateCategory = async (id: string, name: string) => {
     const ownerUid = getListOwner();
     if (!user || !activeListId || !ownerUid) return;
     const categoryRef = doc(db, "users", ownerUid, "lists", activeListId, "categories", id);
-    await setDoc(categoryRef, { name, color }, { merge: true });
+    await setDoc(categoryRef, { name }, { merge: true });
   }
 
   const deleteCategory = async (id: string) => {

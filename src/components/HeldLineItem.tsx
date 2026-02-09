@@ -36,10 +36,7 @@ const HeldLineItem = ({ item, categories, onUnhold, onDelete, onEditItem, classN
     return category ? category.name : 'Unknown'
   }
 
-  const getCategoryColor = (categoryId: string): string => {
-    const category = categories.find(c => c.id === categoryId)
-    return category ? category.color : '#f0f0f0'
-  }
+
 
   return (
     <div key={item.id} className={`${className} ${editingItemId === item.id ? 'editing' : ''}`}>
@@ -113,7 +110,7 @@ const HeldLineItem = ({ item, categories, onUnhold, onDelete, onEditItem, classN
             </span>
             <span
               className="held-item-category"
-              style={{ backgroundColor: getCategoryColor(item.categoryId) }}
+
             >
               {getCategoryName(item.categoryId)}
             </span>

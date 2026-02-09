@@ -6,7 +6,7 @@ export const useApp = (categories: Category[]) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [showInlineAddCategoryForm, setShowInlineAddCategoryForm] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [newCategoryColor, setNewCategoryColor] = useState('');
+
 
   // Initialize view from URL on mount
   useEffect(() => {
@@ -91,12 +91,11 @@ export const useApp = (categories: Category[]) => {
     setCurrentView('single-category');
   };
 
-  const handleInlineAddCategory = (e: React.FormEvent, addCategory: (name: string, color: string) => void) => {
+  const handleInlineAddCategory = (e: React.FormEvent, addCategory: (name: string) => void) => {
     e.preventDefault();
     if (newCategoryName.trim()) {
-      addCategory(newCategoryName.trim(), newCategoryColor);
+      addCategory(newCategoryName.trim());
       setNewCategoryName('');
-      setNewCategoryColor('');
       setShowInlineAddCategoryForm(false);
     }
   };
@@ -107,12 +106,10 @@ export const useApp = (categories: Category[]) => {
     selectedCategoryId,
     showInlineAddCategoryForm,
     newCategoryName,
-    newCategoryColor,
     handleViewChange,
     handleCategoryClick,
     setShowInlineAddCategoryForm,
     setNewCategoryName,
-    setNewCategoryColor,
     handleInlineAddCategory,
     setSelectedCategoryId,
   };

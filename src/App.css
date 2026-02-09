@@ -215,25 +215,7 @@
   width: 100%;
 }
 
-.sidebar-color-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
 
-.sidebar-color-option {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: border-color 0.2s ease;
-}
-
-.sidebar-color-option.selected {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.4);
-}
 
 .sidebar-add-category-actions {
   display: flex;

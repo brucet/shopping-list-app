@@ -34,10 +34,7 @@ const LineItem = ({ item, categories, onRemoveItem, onToggleItem, onEditItem, on
     setInlineQuantityValue('');
   };
 
-  const getCategoryColor = (categoryId: string): string => {
-    const category = categories.find(c => c.id === categoryId)
-    return category ? category.color : '#f0f0f0'
-  }
+
 
   return (
     <div
@@ -115,7 +112,7 @@ const LineItem = ({ item, categories, onRemoveItem, onToggleItem, onEditItem, on
             </span>
             <span
               className="item-category-badge"
-              style={{ backgroundColor: getCategoryColor(item.categoryId) }}
+
             >
               {categories.find(c => c.id === item.categoryId)?.name}
             </span>

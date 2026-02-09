@@ -8,10 +8,7 @@ import HistoryView from './HistoryView';
 import InvitationsView from './InvitationsView';
 import type { Category, Item, SuggestionsMap, HeldItem, ViewType, ListInvite } from '../types';
 
-const PRESET_COLORS = [
-  '#E8F5E9', '#F3E5F5', '#FFEBEE', '#FFF3E0', '#E0F2F1',
-  '#FCE4EC', '#F1F8E9', '#E3F2FD',
-]
+
 
 interface MainViewProps {
   currentView: ViewType;
@@ -22,7 +19,7 @@ interface MainViewProps {
   invitations: ListInvite[];
   selectedCategoryId: string | null;
   handleCategoryClick: (categoryId: string) => void;
-  updateCategory: (id: string, name: string, color: string) => void;
+  updateCategory: (id: string, name: string) => void;
   deleteCategory: (id: string) => void;
   removeItem: (itemId: string) => void;
   toggleItemDone: (itemId: string) => void;
@@ -77,7 +74,6 @@ const MainView: React.FC<MainViewProps> = ({
           onCategoryClick={handleCategoryClick}
           onUpdateCategory={updateCategory}
           onDeleteCategory={deleteCategory}
-          presetColors={PRESET_COLORS}
         />
       </div>
       <div style={{ display: currentView === 'all-items' ? 'block' : 'none', gridArea: '1 / 1' }}>

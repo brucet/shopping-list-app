@@ -63,30 +63,7 @@
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.color-picker-inline {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-}
 
-.color-option {
-  width: 28px;
-  height: 28px;
-  border: 2px solid transparent;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.color-option:hover {
-  transform: scale(1.05);
-}
-
-.color-option.selected {
-  border-color: #333;
-  box-shadow: 0 0 0 2px white, 0 0 0 3px #333;
-}
 
 .save-category-btn {
   width: 100%;

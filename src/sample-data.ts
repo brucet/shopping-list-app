@@ -1,18 +1,18 @@
 import type { Category } from './types'
 
 export const SAMPLE_CATEGORIES: Category[] = [
-  { id: '1', name: '🥬 Fruit & Veg', color: '#E8F5E9', order: 0 },
-  { id: '2', name: '🥛 Dairy', color: '#F3E5F5', order: 1 },
-  { id: '3', name: '🥩 Meat & Fish', color: '#FFEBEE', order: 2 },
-  { id: '4', name: '🥫 Pantry', color: '#FFF3E0', order: 3 },
-  { id: '5', name: '❄️ Frozen', color: '#E0F2F1', order: 4 },
-  { id: '6', name: '🍞 Bakery', color: '#FCE4EC', order: 5 },
-  { id: '7', name: '🥚 Eggs & Proteins', color: '#FFF9C4', order: 6 },
-  { id: '8', name: '🧀 Cheese & Dairy Alt', color: '#F1F8E9', order: 7 },
-  { id: '9', name: '🥤 Beverages', color: '#E3F2FD', order: 8 },
-  { id: '10', name: '🍫 Snacks & Sweets', color: '#F8BBD0', order: 9 },
-  { id: '11', name: '🧂 Seasonings & Oils', color: '#FFECB3', order: 10 },
-  { id: '12', name: '🧃 Condiments', color: '#B2DFDB', order: 11 },
+  { id: '1', name: '🥬 Fruit & Veg', order: 0 },
+  { id: '2', name: '🥛 Dairy', order: 1 },
+  { id: '3', name: '🥩 Meat & Fish', order: 2 },
+  { id: '4', name: '🥫 Pantry', order: 3 },
+  { id: '5', name: '❄️ Frozen', order: 4 },
+  { id: '6', name: '🍞 Bakery', order: 5 },
+  { id: '7', name: '🥚 Eggs & Proteins', order: 6 },
+  { id: '8', name: '🧀 Cheese & Dairy Alt', order: 7 },
+  { id: '9', name: '🥤 Beverages', order: 8 },
+  { id: '10', name: '🍫 Snacks & Sweets', order: 9 },
+  { id: '11', name: '🧂 Seasonings & Oils', order: 10 },
+  { id: '12', name: '🧃 Condiments', order: 11 },
 ]
 
 export const SAMPLE_ITEMS: Record<string, {id: string, text: string, createdAt: number}[]> = {

@@ -6,9 +6,9 @@ interface CategoriesViewProps {
   categories: Category[]
   items: Item[]
   onCategoryClick: (categoryId: string) => void
-  onUpdateCategory: (id: string, name: string, color: string) => void
+  onUpdateCategory: (id: string, name: string) => void
   onDeleteCategory: (id: string) => void
-  presetColors: string[]
+
 }
 
 function CategoryCardMenu({ onEdit, onDelete, itemCount }: { onEdit: () => void; onDelete: () => void; itemCount: number }) {
@@ -48,22 +48,21 @@ function CategoryCardMenu({ onEdit, onDelete, itemCount }: { onEdit: () => void;
   )
 }
 
-export default function CategoriesView({ categories, items, onCategoryClick, onUpdateCategory, onDeleteCategory, presetColors }: CategoriesViewProps) {
+export default function CategoriesView({ categories, items, onCategoryClick, onUpdateCategory, onDeleteCategory }: CategoriesViewProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
-  const [editColor, setEditColor] = useState('')
+
   const [hideEmpty, setHideEmpty] = useState(false)
 
   const startEdit = (category: Category) => {
     setEditingId(category.id)
     setEditName(category.name)
-    setEditColor(category.color)
   }
 
   const saveEdit = (e: React.FormEvent) => {
     e.preventDefault()
     if (editName.trim() && editingId) {
-      onUpdateCategory(editingId, editName.trim(), editColor)
+      onUpdateCategory(editingId, editName.trim())
       setEditingId(null)
     }
   }
@@ -96,15 +95,11 @@ export default function CategoriesView({ categories, items, onCategoryClick, onU
           if (hideEmpty && remainingCount === 0) return null
 
           return (
-            <div key={category.id} className={`category-card ${isEditing ? 'editing' : ''}`} style={{ backgroundColor: isEditing ? '#f0f7ff' : category.color }}>
+            <div key={category.id} className={`category-card ${isEditing ? 'editing' : ''}`}>
               {isEditing ? (
                 <form className="category-edit-form" onSubmit={saveEdit} onClick={(e) => e.stopPropagation()}>
                   <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="category-input" autoFocus />
-                  <div className="color-picker-inline">
-                    {presetColors.map((color) => (
-                      <button key={color} type="button" className={`color-option ${editColor === color ? 'selected' : ''}`} style={{ backgroundColor: color }} onClick={() => setEditColor(color)} />
-                    ))}
-                  </div>
+
                   <div className="edit-actions">
                     <button type="submit" className="save-btn">✓</button>
                     <button type="button" className="cancel-btn" onClick={cancelEdit}>✕</button>
