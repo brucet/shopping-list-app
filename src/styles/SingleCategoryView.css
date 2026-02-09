@@ -46,6 +46,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px; /* Add some space between elements */
+  flex-wrap: wrap; /* Allow items to wrap if space is limited */
+}
+
+.category-info-left {
+  flex-grow: 1;
+}
+
+.category-info-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .category-info h2 {

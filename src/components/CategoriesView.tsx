@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react'
-import type { Category, Item } from '../types'
+import React, {useState} from 'react'
+import type {Category, Item} from '../types'
 import '../styles/CategoriesView.css'
+
 
 interface CategoriesViewProps {
   categories: Category[]
@@ -11,53 +12,11 @@ interface CategoriesViewProps {
 
 }
 
-function CategoryCardMenu({ onEdit, onDelete, itemCount }: { onEdit: () => void; onDelete: () => void; itemCount: number }) {
-  const [isOpen, setIsOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [isOpen])
-
-  return (
-    <div className="category-menu-container" ref={menuRef}>
-      <button className="category-menu-trigger" onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen) }} title="More options">⋮</button>
-      {isOpen && (
-        <div className="category-menu-dropdown">
-          <button className="menu-item" onClick={(e) => { e.stopPropagation(); setIsOpen(false); onEdit() }}>
-            <span className="menu-icon">✏️</span>Edit
-          </button>
-          {itemCount === 0 && (
-            <button className="menu-item delete" onClick={(e) => { e.stopPropagation(); setIsOpen(false); onDelete() }}>
-              <span className="menu-icon">🗑️</span>Delete
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-export default function CategoriesView({ categories, items, onCategoryClick, onUpdateCategory, onDeleteCategory }: CategoriesViewProps) {
+export default function CategoriesView({ categories, items, onCategoryClick, onUpdateCategory }: CategoriesViewProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
 
   const [hideEmpty, setHideEmpty] = useState(false)
-
-  const startEdit = (category: Category) => {
-    setEditingId(category.id)
-    setEditName(category.name)
-  }
 
   const saveEdit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,12 +27,6 @@ export default function CategoriesView({ categories, items, onCategoryClick, onU
   }
 
   const cancelEdit = () => setEditingId(null)
-
-  const handleDelete = (categoryId: string) => {
-    if (confirm('Delete this category?')) {
-      onDeleteCategory(categoryId)
-    }
-  }
 
   return (
     <div className="categories-view">
@@ -88,7 +41,6 @@ export default function CategoriesView({ categories, items, onCategoryClick, onU
       <div className="categories-grid">
         {categories.map((category) => {
           const categoryItems = items.filter(item => item.categoryId === category.id)
-          const itemCount = categoryItems.length
           const remainingCount = categoryItems.filter(item => !item.done).length
           const isEditing = editingId === category.id
 
@@ -111,13 +63,12 @@ export default function CategoriesView({ categories, items, onCategoryClick, onU
                   <div className="category-card-content" onClick={() => onCategoryClick(category.id)}>
                     <div className="category-title-row">
                       <h3>{category.name}</h3>
-                      {remainingCount > 0 ? (
-                        <span className="count-lozenge">{remainingCount}</span>
-                      ) : (
-                        <span className="stat-text empty">Empty</span>
-                      )}
-                      <CategoryCardMenu onEdit={() => startEdit(category)} onDelete={() => handleDelete(category.id)} itemCount={itemCount} />
                     </div>
+                    {remainingCount > 0 ? (
+                      <span className="count-lozenge">{remainingCount}</span>
+                    ) : (
+                      <span className="stat-text empty">Empty</span>
+                    )}
                   </div>
                 </>
               )}

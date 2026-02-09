@@ -3,6 +3,7 @@ import type { Category, Item, SuggestionsMap } from '../types'
 import '../styles/SingleCategoryView.css'
 import '../styles/Item.css'
 import LineItem from './LineItem'
+import CategoryCardMenu from './CategoryCardMenu'
 
 interface SingleCategoryViewProps {
   category: Category
@@ -16,6 +17,8 @@ interface SingleCategoryViewProps {
   onChangeCategory: (itemId: string, toCategoryId: string) => void
   onHoldItem: (itemId: string) => void
   onBack: () => void
+  onUpdateCategory: (id: string, name: string) => void
+  onDeleteCategory: (id: string) => void
 }
 
 export default function SingleCategoryView({
@@ -30,10 +33,37 @@ export default function SingleCategoryView({
   onChangeCategory,
   onHoldItem,
   onBack,
+  onUpdateCategory,
+  onDeleteCategory,
 }: SingleCategoryViewProps) {
   const [inputValue, setInputValue] = useState('')
   const [quantity, setQuantity] = useState<string | undefined>(undefined)
   const [showSuggestions, setShowSuggestions] = useState(false)
+
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+
+  const startEdit = (categoryToEdit: Category) => {
+    setEditingId(categoryToEdit.id)
+    setEditName(categoryToEdit.name)
+  }
+
+  const saveEdit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (editName.trim() && editingId) {
+      onUpdateCategory(editingId, editName.trim())
+      setEditingId(null)
+    }
+  }
+
+  const cancelEdit = () => setEditingId(null)
+
+  const handleDelete = (categoryId: string) => {
+    if (confirm('Delete this category?')) {
+      onDeleteCategory(categoryId)
+      onBack() // Go back to categories view after deleting
+    }
+  }
 
   const getMatchingSuggestions = () => {
     if (!inputValue.trim() || !showSuggestions) return []
@@ -62,8 +92,25 @@ export default function SingleCategoryView({
           ← Back
         </button>
         <div className="category-info">
-          <h2>{category.name}</h2>
-          <span className="item-count">{items.filter(i => !i.done).length} items</span>
+          {editingId === category.id ? (
+            <form className="category-edit-form" onSubmit={saveEdit} onClick={(e) => e.stopPropagation()}>
+              <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="category-input" autoFocus />
+              <div className="edit-actions">
+                <button type="submit" className="save-btn">✓</button>
+                <button type="button" className="cancel-btn" onClick={cancelEdit}>✕</button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <div className="category-info-left">
+                <h2>{category.name}</h2>
+              </div>
+              <div className="category-info-right">
+                <span className="item-count">{items.filter(i => !i.done).length} items</span>
+                <CategoryCardMenu onEdit={() => startEdit(category)} onDelete={() => handleDelete(category.id)} itemCount={items.length} />
+              </div>
+            </>
+          )}
         </div>
       </div>
 

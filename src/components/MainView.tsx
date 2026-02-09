@@ -120,6 +120,8 @@ const MainView: React.FC<MainViewProps> = ({
             onChangeCategory={changeItemCategory}
             onHoldItem={holdItem}
             onBack={() => handleViewChange('categories')}
+            onUpdateCategory={updateCategory}
+            onDeleteCategory={deleteCategory}
           />
         )}
       </div>
