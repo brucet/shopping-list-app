@@ -88,11 +88,6 @@
     transition: background-color 0.2s ease;
 }
 
-.categories-grid.dragging-over {
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 8px;
-}
-
 .category-card {
     position: relative;
     border-radius: 6px;
@@ -110,54 +105,8 @@
     transform: translateY(-1px);
 }
 
-.category-card.dragging {
-    opacity: 0.5;
-    transform: rotate(2deg);
-}
-
 .category-card.editing {
     border: 2px solid #667eea;
-}
-
-.add-category-card {
-    background: #f0f7ff;
-    border: 2px dashed #667eea;
-}
-
-.add-category-placeholder {
-    position: relative;
-    border-radius: 6px;
-    min-height: 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: white;
-    border: 2px dashed #ddd;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: inherit;
-    box-shadow: none;
-}
-
-.add-category-placeholder:hover {
-    border-color: #667eea;
-    background: #f9fafb;
-    transform: translateY(-1px);
-}
-
-.add-icon {
-    font-size: 24px;
-    color: #667eea;
-    font-weight: 300;
-    line-height: 1;
-}
-
-.add-label {
-    font-size: 12px;
-    color: #667eea;
-    font-weight: 600;
 }
 
 .category-card-drag-handle {
@@ -287,16 +236,6 @@
     padding: 0 4px;
 }
 
-.category-stats {
-    font-size: 11px;
-    color: #666;
-    margin-top: 4px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    align-items: center;
-}
-
 .count-lozenge {
     display: inline-flex;
     align-items: center;
@@ -382,9 +321,6 @@
         font-size: 13px;
     }
 
-    .category-stats {
-        font-size: 10px;
-    }
 }
 
 @media (max-width: 480px) {

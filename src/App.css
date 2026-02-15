@@ -34,24 +34,6 @@
     min-width: 0;
 }
 
-.manage-categories-btn {
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid white;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-.manage-categories-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-}
-
 
 /* Tablet */
 @media (max-width: 1024px) {
@@ -168,21 +150,9 @@
 }
 
 /* Empty state */
-.empty-state-desktop {
-    display: none;
-    flex: 1;
-    align-items: center;
-    justify-content: center;
-    color: #999;
-    font-size: 16px;
-    background: #fafafa;
-}
 
 /* Show empty state on wide screens (when sidebar is visible) */
 @media (min-width: 769px) {
-    .empty-state-desktop {
-        display: flex;
-    }
 }
 
 /* Small mobile */
@@ -258,16 +228,6 @@
 
 .sidebar-item.add-category-toggle:hover {
     background: rgba(102, 126, 234, 0.15);
-}
-
-.sidebar-loading, .main-loading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    font-size: 16px;
-    color: #999;
-    font-style: italic;
 }
 
 /* Hide the old "Manage Categories" button in the sidebar */

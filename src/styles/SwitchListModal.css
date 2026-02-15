@@ -84,10 +84,6 @@
     gap: 8px;
 }
 
-.list-actions .switch-btn { /* This rule is now effectively removed as the button is gone */
-    display: none;
-}
-
 .list-actions .delete-btn {
     background: none;
     border: none;

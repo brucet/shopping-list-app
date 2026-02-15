@@ -88,20 +88,6 @@
     width: fit-content;
 }
 
-.list-item .item-delete-btn {
-    background: none;
-    border: none;
-    color: #999;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 4px;
-    flex-shrink: 0;
-}
-
-.list-item .item-delete-btn:hover {
-    color: #e74c3c;
-}
-
 /* Edit mode styles */
 .list-item.editing {
     background: #f0f7ff;
