@@ -1,91 +1,94 @@
 export interface Category {
-  id: string;
-  name: string;
-  order: number;
+    id: string;
+    name: string;
+    order: number;
 }
 
 export interface Item {
-  id: string;
-  createdAt: number;
-  text: string;
-  done?: boolean;
-  categoryId: string;
-  quantity?: string;
+    id: string;
+    createdAt: number;
+    text: string;
+    done?: boolean;
+    categoryId: string;
+    quantity?: string;
 }
 
 export interface Suggestion {
-  text: string;
-  frequency: number;
-  lastAdded: number;
-  categoryId: string;
+    text: string;
+    frequency: number;
+    lastAdded: number;
+    categoryId: string;
 }
 
 export interface SuggestionsMap {
-  [normalizedText: string]: Suggestion;
+    [normalizedText: string]: Suggestion;
 }
 
 export interface HeldItem {
-  id: string;
-  text: string;
-  categoryId: string;
-  quantity?: string;
-  createdAt: number;
+    id: string;
+    text: string;
+    categoryId: string;
+    quantity?: string;
+    createdAt: number;
 }
 
-export type ViewType = 'categories' | 'all-items' | 'suggestions' | 'held-items' | 'single-category' | 'history' | 'invitations';
-
+export type ViewType =
+    'categories'
+    | 'all-items'
+    | 'suggestions'
+    | 'held-items'
+    | 'single-category'
+    | 'history'
+    | 'invitations';
 
 
 export type Role = 'owner' | 'editor' | 'viewer';
 
 
-
 export interface ListMember {
 
-  uid: string;
+    uid: string;
 
-  email: string;
+    email: string;
 
-  role: Role;
+    role: Role;
 
 }
-
 
 
 // Exported List interface
 
 export interface List {
 
-  id:string;
+    id: string;
 
-  name: string;
+    name: string;
 
-  createdAt: number;
+    createdAt: number;
 
-  lastOpened: number;
+    lastOpened: number;
 
-  members: {
-    [uid: string]: ListMember;
-  };
+    members: {
+        [uid: string]: ListMember;
+    };
 
-  memberUids: string[];
+    memberUids: string[];
 
 }
 
 
-
 export interface ListInvite {
 
-  id: string;
+    id: string;
 
-  listId: string;
+    listId: string;
 
-  listName: string;
+    listName: string;
 
-  fromUid: string;
+    fromUid: string;
 
-  fromEmail: string;
+    fromEmail: string;
 
-  toEmail: string;
+    toEmail: string;
 
 }

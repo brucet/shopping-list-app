@@ -1,279 +1,278 @@
 @charset "UTF-8";
 .app {
-  width: 100%;
-  max-width: 1400px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  max-height: 90vh;
+    width: 100%;
+    max-width: 1400px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
 }
 
 .app-main {
-  display: flex;
-  flex: 1;
-  overflow-y: auto;
+    display: flex;
+    flex: 1;
+    overflow-y: auto;
 }
 
 .app-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  flex-shrink: 0;
-  gap: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    flex-shrink: 0;
+    gap: 12px;
 }
 
 .app-header h1 {
-  font-size: 28px;
-  font-weight: 600;
-  flex: 1;
-  min-width: 0;
+    font-size: 28px;
+    font-weight: 600;
+    flex: 1;
+    min-width: 0;
 }
 
 .manage-categories-btn {
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
 .manage-categories-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
 }
 
 
 /* Tablet */
 @media (max-width: 1024px) {
-  .app {
-    max-height: 95vh;
-  }
+    .app {
+        max-height: 95vh;
+    }
 }
 
 /* Sidebar */
 .sidebar {
-  display: flex;
-  flex-direction: column;
-  width: 300px;
-  background: #f5f5f5;
-  border-right: 1px solid #e0e0e0;
-  overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    background: #f5f5f5;
+    border-right: 1px solid #e0e0e0;
+    overflow-y: auto;
 }
 
 .sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
 }
 
 .sidebar-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  color: #333;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  text-align: left;
-  border-left: 3px solid transparent;
-  width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    text-align: left;
+    border-left: 3px solid transparent;
+    width: 100%;
 }
 
 .sidebar-item-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .sidebar-item-count {
-  background: rgba(0, 0, 0, 0.05);
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #666;
-  flex-shrink: 0;
-  margin-left: auto;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    flex-shrink: 0;
+    margin-left: auto;
 }
 
 .sidebar-item.active .sidebar-item-count {
-  background: rgba(102, 126, 234, 0.2);
-  color: #667eea;
+    background: rgba(102, 126, 234, 0.2);
+    color: #667eea;
 }
 
 .sidebar-item.add-item {
-  color: #667eea;
-  font-weight: 600;
-  margin-top: 8px;
+    color: #667eea;
+    font-weight: 600;
+    margin-top: 8px;
 }
 
 .sidebar-item.add-item:hover {
-  background: rgba(102, 126, 234, 0.15);
+    background: rgba(102, 126, 234, 0.15);
 }
 
 .sidebar-drag-handle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    cursor: grab;
 }
 
 /* Hide Manage Categories button on desktop - categories can be managed via mobile Categories tab */
 @media (min-width: 769px) {
-  .sidebar-item.add-item {
-    display: none;
-  }
+    .sidebar-item.add-item {
+        display: none;
+    }
 }
 
 /* Mobile */
 @media (max-width: 768px) {
-  .app {
-    height: 100vh;
-    border-radius: 0;
-    box-shadow: none;
-  }
+    .app {
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+    }
 
-  .app-header {
-    padding: 16px;
-  }
+    .app-header {
+        padding: 16px;
+    }
 
-  .app-header h1 {
-    font-size: 20px;
-  }
+    .app-header h1 {
+        font-size: 20px;
+    }
 
-  .sidebar {
-    display: none;
-  }
+    .sidebar {
+        display: none;
+    }
 }
 
 /* Empty state */
 .empty-state-desktop {
-  display: none;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-  font-size: 16px;
-  background: #fafafa;
+    display: none;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 16px;
+    background: #fafafa;
 }
 
 /* Show empty state on wide screens (when sidebar is visible) */
 @media (min-width: 769px) {
-  .empty-state-desktop {
-    display: flex;
-  }
+    .empty-state-desktop {
+        display: flex;
+    }
 }
 
 /* Small mobile */
 @media (max-width: 480px) {
-  .app-header {
-    padding: 12px;
-  }
+    .app-header {
+        padding: 12px;
+    }
 
-  .app-header h1 {
-    font-size: 18px;
-  }
+    .app-header h1 {
+        font-size: 18px;
+    }
 }
 
 /* Sidebar Add Category Form */
 .sidebar-add-category-form {
-  display: flex;
-  flex-direction: column;
-  padding: 12px;
-  gap: 8px;
-  background-color: #f0f0f0;
-  border-top: 1px solid #e0e0e0;
-  margin-top: auto; /* Push to the bottom */
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    gap: 8px;
+    background-color: #f0f0f0;
+    border-top: 1px solid #e0e0e0;
+    margin-top: auto; /* Push to the bottom */
 }
 
 .sidebar-category-input {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 100%;
 }
-
 
 
 .sidebar-add-category-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
 }
 
 .sidebar-add-category-actions button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  transition: background-color 0.2s ease;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
 }
 
 .sidebar-save-btn {
-  background-color: #667eea;
-  color: white;
+    background-color: #667eea;
+    color: white;
 }
 
 .sidebar-save-btn:hover {
-  background-color: #5a6ac9;
+    background-color: #5a6ac9;
 }
 
 .sidebar-cancel-btn {
-  background-color: #e0e0e0;
-  color: #333;
+    background-color: #e0e0e0;
+    color: #333;
 }
 
 .sidebar-cancel-btn:hover {
-  background-color: #d0d0d0;
+    background-color: #d0d0d0;
 }
 
 .sidebar-item.add-category-toggle {
-  color: #667eea;
-  font-weight: 600;
-  margin-top: 8px;
+    color: #667eea;
+    font-weight: 600;
+    margin-top: 8px;
 }
 
 .sidebar-item.add-category-toggle:hover {
-  background: rgba(102, 126, 234, 0.15);
+    background: rgba(102, 126, 234, 0.15);
 }
 
 .sidebar-loading, .main-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  font-size: 16px;
-  color: #999;
-  font-style: italic;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 16px;
+    color: #999;
+    font-style: italic;
 }
 
 /* Hide the old "Manage Categories" button in the sidebar */
 @media (min-width: 769px) {
-  .sidebar-item.add-item { /* old button class */
-    display: none;
-  }
+    .sidebar-item.add-item { /* old button class */
+        display: none;
+    }
 }

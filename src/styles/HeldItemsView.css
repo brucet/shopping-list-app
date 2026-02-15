@@ -1,225 +1,225 @@
 .held-items-view {
-  flex: 1;
-  overflow-y: auto;
-  background: #f8f9fa;
-  padding: 16px;
+    flex: 1;
+    overflow-y: auto;
+    background: #f8f9fa;
+    padding: 16px;
 }
 
 .held-items-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background: white;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .held-items-header h2 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
-  margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
 }
 
 .held-count {
-  background: #667eea;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 600;
+    background: #667eea;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
 }
 
 .empty-held-items {
-  text-align: center;
-  padding: 60px 20px;
-  color: #999;
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
 }
 
 .empty-held-items p {
-  font-size: 15px;
-  font-style: italic;
-  line-height: 1.5;
+    font-size: 15px;
+    font-style: italic;
+    line-height: 1.5;
 }
 
 .held-items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .held-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px;
-  background: white;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  border: 1px solid #e0e0e0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px;
+    background: white;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .held-item:hover {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  border-color: rgba(102, 126, 234, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border-color: rgba(102, 126, 234, 0.3);
 }
 
 .held-item-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
 }
 
 .held-item-text {
-  font-size: 15px;
-  font-weight: 500;
-  color: #333;
-  word-break: break-word;
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+    word-break: break-word;
 }
 
 .item-quantity-inline-input {
-  width: 40px; /* Adjust as needed */
-  padding: 2px 4px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-right: 5px;
-  font-size: 14px;
-  text-align: center;
+    width: 40px; /* Adjust as needed */
+    padding: 2px 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 5px;
+    font-size: 14px;
+    text-align: center;
 }
 
 .held-item.editing {
-  background: #f0f7ff;
-  border-color: #667eea;
+    background: #f0f7ff;
+    border-color: #667eea;
 }
 
 .item-edit-form {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
 }
 
 .edit-input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #667eea;
-  border-radius: 4px;
-  font-size: 15px;
-  font-family: inherit;
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #667eea;
+    border-radius: 4px;
+    font-size: 15px;
+    font-family: inherit;
 }
 
 .edit-input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .edit-save-btn,
 .edit-cancel-btn {
-  padding: 6px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .edit-save-btn {
-  background: #667eea;
-  color: white;
+    background: #667eea;
+    color: white;
 }
 
 .edit-save-btn:hover {
-  background: #5568d3;
+    background: #5568d3;
 }
 
 .edit-cancel-btn {
-  background: #e0e0e0;
-  color: #666;
+    background: #e0e0e0;
+    color: #666;
 }
 
 .edit-cancel-btn:hover {
-  background: #d0d0d0;
+    background: #d0d0d0;
 }
 
 
 .held-item-category {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #555;
-  width: fit-content;
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #555;
+    width: fit-content;
 }
 
 .held-item-actions {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
 }
 
 .unhold-btn,
 .delete-held-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 6px 8px;
-  transition: all 0.2s ease;
-  border-radius: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 6px 8px;
+    transition: all 0.2s ease;
+    border-radius: 4px;
 }
 
 .unhold-btn:hover {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
 }
 
 .delete-held-btn:hover {
-  background: rgba(231, 76, 60, 0.1);
-  color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
 }
 
 @media (max-width: 768px) {
-  .held-items-view {
-    padding: 12px;
-  }
+    .held-items-view {
+        padding: 12px;
+    }
 
-  .held-items-header {
-    padding: 14px;
-  }
+    .held-items-header {
+        padding: 14px;
+    }
 
-  .held-items-header h2 {
-    font-size: 18px;
-  }
+    .held-items-header h2 {
+        font-size: 18px;
+    }
 
-  .held-item {
-    padding: 12px;
-  }
+    .held-item {
+        padding: 12px;
+    }
 }
 
 @media (max-width: 480px) {
-  .held-items-view {
-    padding: 8px;
-  }
+    .held-items-view {
+        padding: 8px;
+    }
 
-  .held-items-header {
-    padding: 12px;
-  }
+    .held-items-header {
+        padding: 12px;
+    }
 
-  .held-items-header h2 {
-    font-size: 16px;
-  }
+    .held-items-header h2 {
+        font-size: 16px;
+    }
 
-  .held-item-text {
-    font-size: 14px;
-  }
+    .held-item-text {
+        font-size: 14px;
+    }
 }

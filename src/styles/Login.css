@@ -1,28 +1,28 @@
 .login-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  gap: 20px;
-  background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    gap: 20px;
+    background-color: #f8f9fa;
 }
 
 .login-btn {
-  padding: 12px 24px;
-  background: #4285F4;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: background 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+    padding: 12px 24px;
+    background: #4285F4;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .login-btn:hover {
-  background: #3367D6;
+    background: #3367D6;
 }

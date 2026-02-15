@@ -1,26 +1,26 @@
 .invitations-view {
-  padding: 20px;
+    padding: 20px;
 }
 
 .invitations-list {
-  list-style: none;
-  padding: 0;
+    list-style: none;
+    padding: 0;
 }
 
 .invitation-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
 }
 
 .invitation-details {
-  flex-grow: 1;
+    flex-grow: 1;
 }
 
 .invitation-actions button {
-  margin-left: 10px;
+    margin-left: 10px;
 }
