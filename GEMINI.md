@@ -80,4 +80,8 @@ This document outlines the file formatting conventions that align with IntelliJ'
     };
     ```
 
+### 10. Variable Declarations
+
+*   **Prefer `const` over `let`**: Avoid the use of `let` wherever possible. Use `const` for variables whose values do not change after their initial assignment. Use `let` only when the variable's value needs to be reassigned.
+
 By following these guidelines and regularly using IntelliJ's built-in formatting features, we can maintain a clean and consistent codebase.

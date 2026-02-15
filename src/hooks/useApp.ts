@@ -34,13 +34,12 @@ export const useApp = (categories: Category[]) => {
 
     // Update URL whenever view or category changes
     useEffect(() => {
-        let hash = '';
-
-        if (currentView === 'single-category' && selectedCategoryId) {
-            hash = `#category/${selectedCategoryId}`;
-        } else if (currentView !== 'categories') {
-            hash = `#${currentView}`;
-        }
+        const hash =
+            currentView === 'single-category' && selectedCategoryId
+                ? `#category/${selectedCategoryId}`
+                : currentView !== 'categories'
+                ? `#${currentView}`
+                : '';
 
         // Only update if different to avoid infinite loops
         if (window.location.hash !== hash) {

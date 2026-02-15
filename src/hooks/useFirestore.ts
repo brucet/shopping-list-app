@@ -498,11 +498,15 @@ export const useFirestore = (user: User | null) => {
 
         // Move held items back to regular items and delete from heldItems
         heldItems.forEach(heldItem => {
-            let targetCategoryId = heldItem.categoryId;
+            const targetCategoryId =
+                !heldItem.categoryId || !categories.some(c => c.id === heldItem.categoryId)
+                    ? categories.length > 0
+                        ? categories[0].id
+                        : 'default-category-id'
+                    : heldItem.categoryId;
 
             // Fallback if original category doesn't exist or is not set
-            if (!targetCategoryId || !categories.some(c => c.id === targetCategoryId)) {
-                targetCategoryId = categories.length > 0 ? categories[0].id : 'default-category-id'; // Use first category or a placeholder
+            if (!heldItem.categoryId || !categories.some(c => c.id === heldItem.categoryId)) {
                 // Note: For a real app, 'default-category-id' would need to be a valid existing category or handled by creation
                 console.warn(`Held item "${heldItem.text}" original category not found or not set. Assigning to: ${targetCategoryId}`);
             }
