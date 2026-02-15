@@ -32,6 +32,7 @@ export const useFirestore = (user: User | null) => {
   const [lists, setLists] = useState<List[]>([]);
   const [activeListId, setActiveListId] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoaded, setCategoriesLoaded] = useState<boolean>(false);
   const [items, setItems] = useState<Item[]>([]);
   const [heldItems, setHeldItems] = useState<HeldItem[]>([]);
   const [suggestions, setSuggestions] = useState<SuggestionsMap>({});
@@ -98,6 +99,7 @@ export const useFirestore = (user: User | null) => {
     const listeners = [
       onSnapshot(query(collection(db, "users", ownerUid, "lists", activeListId, "categories"), orderBy("order")), (snapshot) => {
         setCategories(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Category)));
+        setCategoriesLoaded(true);
       }),
       onSnapshot(query(collection(db, "users", ownerUid, "lists", activeListId, "items"), orderBy("createdAt")), (snapshot) => {
         setItems(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Item)));
@@ -635,6 +637,7 @@ export const useFirestore = (user: User | null) => {
     lists,
     activeListId,
     categories,
+    categoriesLoaded,
     items,
     heldItems,
     suggestions,

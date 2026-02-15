@@ -31,6 +31,7 @@ const App = () => {
     lists,
     activeListId,
     categories,
+    categoriesLoaded,
     items,
     heldItems,
     suggestions,
@@ -62,6 +63,7 @@ const App = () => {
     declineInvitation,
     handleCategoryOrderChange,
   } = useFirestore(user);
+
   const {
     currentView,
     selectedCategoryId,
@@ -168,14 +170,14 @@ const App = () => {
                       <button type="button" className="sidebar-cancel-btn" onClick={() => setShowInlineAddCategoryForm(false)}>✕ Cancel</button>
                     </div>
                   </form>
-                ) : (
+                ) : categoriesLoaded ? (
                   <button
                     className="sidebar-item add-category-toggle"
                     onClick={() => setShowInlineAddCategoryForm(true)}
                   >
                     <span className="sidebar-item-name">➕ Add New Category</span>
                   </button>
-                )}
+                ) : null }
               </nav>
             </SortableContext>
           </aside>
