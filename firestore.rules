@@ -9,7 +9,8 @@ service cloud.firestore {
 
     match /users/{userId}/lists/{listId} {
       allow read: if request.auth.uid in resource.data.memberUids;
-      allow write: if request.auth.uid in resource.data.memberUids && resource.data.members[request.auth.uid].role != 'viewer';
+      allow create: if request.auth.uid == userId;
+      allow update, delete: if request.auth.uid in resource.data.memberUids && resource.data.members[request.auth.uid].role != 'viewer';
     }
     match /users/{userId}/lists/{listId}/{document=**} {
       allow read: if request.auth.uid in get(/databases/$(database)/documents/users/$(userId)/lists/$(listId)).data.memberUids;
