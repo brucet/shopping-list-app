@@ -54,6 +54,7 @@ export default function SuggestionsView({ suggestions, categories, items, onAddS
   const [editCategoryId, setEditCategoryId] = useState('')
   const viewRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(20);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const getSuggestionScore = (suggestion: { frequency: number; lastAdded: number }) => {
     const now = Date.now()
@@ -76,10 +77,19 @@ export default function SuggestionsView({ suggestions, categories, items, onAddS
       ...data,
       score: getSuggestionScore(data)
     }))
-    .filter(suggestion => !itemsInList.has(suggestion.key))
-    .sort((a, b) => b.score - a.score)
+    .filter(suggestion => !itemsInList.has(suggestion.key));
 
-  const sortedSuggestions = allSuggestions.slice(0, visibleCount);
+  const filteredSuggestions = searchTerm.trim() === ''
+    ? allSuggestions
+    : allSuggestions.filter(suggestion => {
+        const lowerSearchTerm = searchTerm.toLowerCase();
+        const wordsInSuggestion = suggestion.text.toLowerCase().split(/\s+/);
+        return wordsInSuggestion.some(word => word.startsWith(lowerSearchTerm));
+      });
+
+  const sortedSuggestions = filteredSuggestions
+    .sort((a, b) => b.score - a.score)
+    .slice(0, visibleCount);
 
   useEffect(() => {
     const scrollContainer = viewRef.current?.closest('.app-main');
@@ -90,12 +100,12 @@ export default function SuggestionsView({ suggestions, categories, items, onAddS
       if (scrollTop + clientHeight < scrollHeight - 100) {
         return;
       }
-      setVisibleCount(prevCount => Math.min(prevCount + 20, allSuggestions.length));
+      setVisibleCount(prevCount => Math.min(prevCount + 20, filteredSuggestions.length));
     };
 
     scrollContainer.addEventListener('scroll', handleScroll);
     return () => scrollContainer.removeEventListener('scroll', handleScroll);
-  }, [allSuggestions.length]);
+  }, [filteredSuggestions.length]);
 
   const getCategoryName = (categoryId: string) => {
     const category = categories.find(c => c.id === categoryId)
@@ -126,6 +136,14 @@ export default function SuggestionsView({ suggestions, categories, items, onAddS
         <h2>Suggestions</h2>
         <span className="suggestions-count">{sortedSuggestions.length} items</span>
       </div>
+
+      <input
+        type="text"
+        placeholder="Search suggestions..."
+        className="suggestions-search-input"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
 
       {sortedSuggestions.length === 0 ? (
         <div className="empty-suggestions">
@@ -179,7 +197,10 @@ export default function SuggestionsView({ suggestions, categories, items, onAddS
                 <>
                   <div 
                     className="suggestion-content"
-                    onClick={() => onAddSuggestion(suggestion.categoryId, suggestion.text)}
+                    onClick={() => {
+                      onAddSuggestion(suggestion.categoryId, suggestion.text);
+                      setSearchTerm(''); // Clear the search term
+                    }}
                   >
                     <span className="suggestion-text">{suggestion.text}</span>
                     <div className="suggestion-meta">
