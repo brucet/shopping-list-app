@@ -116,7 +116,7 @@
     transition: opacity 0.2s ease;
     flex-shrink: 0;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
 }
 
 .category-card-drag-handle:hover {
@@ -221,7 +221,7 @@
     display: flex;
     flex-direction: row; /* Change to row to align title/count and menu */
     justify-content: space-between; /* Space out title/count and menu */
-    align-items: flex-start; /* Align items to the top */
+    align-items: center; /* Align items to the center */
     gap: 4px;
 }
 
@@ -310,7 +310,7 @@
     }
 
     .category-card {
-        min-height: 70px;
+        min-height: 36px;
     }
 
     .category-card-content {
