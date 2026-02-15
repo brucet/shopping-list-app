@@ -470,7 +470,6 @@ export const useFirestore = (user: User | null) => {
   const removeDoneItems = async () => {
     const ownerUid = getListOwner();
     if (!user || !activeListId || !ownerUid) return;
-    if (!confirm('Remove all completed items from your shopping list?')) return
 
     const batch = writeBatch(db);
     items.forEach(item => {
