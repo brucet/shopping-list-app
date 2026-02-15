@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
     DndContext,
     closestCenter,
@@ -98,6 +99,11 @@ const App = () => {
     };
 
     const activeList = lists.find(l => l.id === activeListId);
+
+    // Update document title based on active list name
+    useEffect(() => {
+        document.title = activeList?.name ? `${activeList.name} | Shopping List App` : 'Shopping List App';
+    }, [activeList]);
 
     if (isLoading) {
         return <div className="main-loading">Loading...</div>;
