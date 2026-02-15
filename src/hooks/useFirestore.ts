@@ -1,28 +1,32 @@
-import { useState, useEffect } from 'react';
+import {useEffect, useState} from 'react';
 import {
   collection,
-  onSnapshot,
-  doc,
-  setDoc,
+  collectionGroup,
   deleteDoc,
-  writeBatch,
-  query,
-  orderBy,
+  doc,
   getDoc,
   getDocs,
+  onSnapshot,
+  orderBy,
+  query,
   serverTimestamp,
+  setDoc,
   updateDoc,
-  collectionGroup,
   where,
+  writeBatch,
 } from 'firebase/firestore';
-import { db } from '../firebase';
-import { User } from 'firebase/auth';
-import type { Category, Item, SuggestionsMap, HeldItem, List, ListInvite } from '../types';
-import { getInvitations, acceptInvitation as acceptInvitationService, declineInvitation as declineInvitationService } from '../services/list-sharing';
+import {db} from '../firebase';
+import {User} from 'firebase/auth';
+import type {Category, HeldItem, Item, List, ListInvite, SuggestionsMap} from '../types';
+import {
+  acceptInvitation as acceptInvitationService,
+  declineInvitation as declineInvitationService,
+  getInvitations
+} from '../services/list-sharing';
 import debounce from 'lodash.debounce';
-import { parseItemText } from '../utils/itemParser';
-import { addEmojiToItem } from '../utils/emojiMatcher';
-import { arrayMove } from '@dnd-kit/sortable';
+import {parseItemText} from '../utils/itemParser';
+import {addEmojiToItem} from '../utils/emojiMatcher';
+import {arrayMove} from '@dnd-kit/sortable';
 
 export const useFirestore = (user: User | null) => {
   const [lists, setLists] = useState<List[]>([]);
@@ -484,14 +488,37 @@ export const useFirestore = (user: User | null) => {
     if (!confirm('Remove ALL items from your shopping list? Held items will be moved back to their categories.')) return
 
     const batch = writeBatch(db);
+
+    // Delete all regular items
     items.forEach(item => {
       const itemRef = doc(db, "users", ownerUid, "lists", activeListId, "items", item.id);
       batch.delete(itemRef);
     });
-    heldItems.forEach(item => {
-      const itemRef = doc(db, "users", ownerUid, "lists", activeListId, "heldItems", item.id);
-      batch.delete(itemRef);
+
+    // Move held items back to regular items and delete from heldItems
+    heldItems.forEach(heldItem => {
+      let targetCategoryId = heldItem.categoryId;
+
+      // Fallback if original category doesn't exist or is not set
+      if (!targetCategoryId || !categories.some(c => c.id === targetCategoryId)) {
+        targetCategoryId = categories.length > 0 ? categories[0].id : 'default-category-id'; // Use first category or a placeholder
+        // Note: For a real app, 'default-category-id' would need to be a valid existing category or handled by creation
+        console.warn(`Held item "${heldItem.text}" original category not found or not set. Assigning to: ${targetCategoryId}`);
+      }
+
+      const newItemRef = doc(collection(db, "users", ownerUid, "lists", activeListId, "items"));
+      batch.set(newItemRef, {
+        text: heldItem.text,
+        categoryId: targetCategoryId,
+        done: false, // Held items become undone when moved back
+        createdAt: heldItem.createdAt || Date.now(),
+        quantity: heldItem.quantity || null,
+      });
+
+      const heldItemRef = doc(db, "users", ownerUid, "lists", activeListId, "heldItems", heldItem.id);
+      batch.delete(heldItemRef);
     });
+
     await batch.commit();
   }
 
