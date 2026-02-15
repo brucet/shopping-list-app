@@ -117,7 +117,7 @@ const App = () => {
     return (
         <div className="app">
             <header className="app-header">
-                <h1>🛒 {activeList?.name || 'Shopping List'}</h1>
+                <h1>{activeList?.name}</h1>
                 <HeaderMenu
                     user={user}
                     onLogout={handleLogout}

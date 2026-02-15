@@ -102,16 +102,6 @@
     color: #667eea;
 }
 
-.sidebar-item.add-item {
-    color: #667eea;
-    font-weight: 600;
-    margin-top: 8px;
-}
-
-.sidebar-item.add-item:hover {
-    background: rgba(102, 126, 234, 0.15);
-}
-
 .sidebar-drag-handle {
     display: flex;
     align-items: center;
@@ -123,9 +113,6 @@
 
 /* Hide Manage Categories button on desktop - categories can be managed via mobile Categories tab */
 @media (min-width: 769px) {
-    .sidebar-item.add-item {
-        display: none;
-    }
 }
 
 /* Mobile */
@@ -232,7 +219,4 @@
 
 /* Hide the old "Manage Categories" button in the sidebar */
 @media (min-width: 769px) {
-    .sidebar-item.add-item { /* old button class */
-        display: none;
-    }
 }
