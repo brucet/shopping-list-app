@@ -220,6 +220,7 @@ export default function SuggestionsView({
                                         className="suggestion-content"
                                         onClick={() => {
                                             onAddSuggestion(suggestion.categoryId, suggestion.text);
+                                            onDeleteSuggestion(suggestion.key);
                                             setSearchTerm(''); // Clear the search term
                                         }}
                                     >
