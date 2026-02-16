@@ -1,5 +1,6 @@
 import {initializeApp} from "firebase/app";
-import {getFirestore} from "firebase/firestore";
+import {initializeFirestore} from "firebase/firestore";
+import {persistentLocalCache, persistentSingleTabManager} from "@firebase/firestore";
 import {getAuth, GoogleAuthProvider} from "firebase/auth";
 
 // Your web app's Firebase configuration
@@ -15,7 +16,14 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+
+// Initialize Firestore with IndexedDB persistence
+const db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+        tabManager: persistentSingleTabManager(undefined)
+    })
+});
+
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
