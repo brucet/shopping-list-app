@@ -87,10 +87,6 @@
     background: #fafbfc;
 }
 
-.suggestion-item:active {
-    transform: scale(0.98);
-}
-
 .suggestion-content {
     flex: 1;
     display: flex;
